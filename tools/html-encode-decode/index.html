@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML Encode / Decode</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; }
+    textarea { width: 100%; min-height: 100px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; }
+    button { font: inherit; padding: 0.5rem 1rem; margin: 0.25rem 0.25rem 0 0; cursor: pointer; }
+    .row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <label for="input">Input</label>
+    <textarea id="input" placeholder="Paste HTML or text here…"></textarea>
+  </div>
+  <button type="button" id="encode">Encode (→ entities)</button>
+  <button type="button" id="decode">Decode (← entities)</button>
+  <button type="button" id="clear">Clear</button>
+  <div class="row">
+    <label for="output">Output</label>
+    <textarea id="output" readonly placeholder="Result…" tabindex="0"></textarea>
+  </div>
+
+  <script>
+    (function () {
+      var input = document.getElementById('input');
+      var output = document.getElementById('output');
+      var div = document.createElement('div');
+
+      // Encode: escape 5 special chars, then numeric entities &#code; for everything non-ASCII. No per-char table.
+      function encodeHtml(s) {
+        var out = '';
+        for (var i = 0; i < s.length; i++) {
+          var c = s.charAt(i);
+          var code = s.charCodeAt(i);
+          if (c === '&') { out += '&amp;'; continue; }
+          if (c === '<') { out += '&lt;'; continue; }
+          if (c === '>') { out += '&gt;'; continue; }
+          if (c === '"') { out += '&quot;'; continue; }
+          if (c === "'") { out += '&#39;'; continue; }
+          if (code >= 128) { out += '&#' + code + ';'; continue; }
+          out += c;
+        }
+        return out;
+      }
+
+      function decodeHtml(s) {
+        div.innerHTML = s;
+        return div.textContent;
+      }
+
+      document.getElementById('encode').onclick = function () {
+        output.value = encodeHtml(input.value);
+      };
+
+      document.getElementById('decode').onclick = function () {
+        try {
+          output.value = decodeHtml(input.value);
+        } catch (e) {
+          output.value = '# Decode error';
+        }
+      };
+
+      document.getElementById('clear').onclick = function () {
+        input.value = '';
+        output.value = '';
+      };
+    })();
+  </script>
+</body>
+</html>

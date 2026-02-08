@@ -1,0 +1,14 @@
+{
+  "name": "helpers",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Dev tools collection — unicode, base64, HTML encode/decode and more",
+  "scripts": {
+    "generate-manifest": "node scripts/generate-manifest.js",
+    "build": "npm run generate-manifest && cd frontend && npm install && npm run build && cd .. && node scripts/copy-tools-to-dist.js",
+    "dev:frontend": "npm run generate-manifest && cd frontend && npm run dev",
+    "dev:backend": "npm run generate-manifest && cd backend && npm install && node server.js",
+    "dev": "npm run generate-manifest && npm run dev:backend",
+    "start": "npm run build && cd backend && node server.js"
+  }
+}

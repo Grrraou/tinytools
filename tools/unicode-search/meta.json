@@ -1,0 +1,7 @@
+{
+  "name": "Unicode Search",
+  "description": "Search Unicode characters by name or code point",
+  "category": "Text",
+  "keywords": ["unicode", "character", "codepoint", "search"],
+  "order": 1
+}

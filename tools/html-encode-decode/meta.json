@@ -1,0 +1,7 @@
+{
+  "name": "HTML Encode / Decode",
+  "description": "Encode or decode HTML entities",
+  "category": "Web",
+  "keywords": ["html", "entity", "encode", "decode", "escape"],
+  "order": 1
+}

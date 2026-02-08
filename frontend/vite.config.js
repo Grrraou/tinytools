@@ -1,0 +1,18 @@
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+
+export default defineConfig({
+  plugins: [vue()],
+  root: '.',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      '/tools': { target: 'http://localhost:3000', changeOrigin: true },
+      '/tools-manifest.json': { target: 'http://localhost:3000', changeOrigin: true },
+    },
+  },
+});

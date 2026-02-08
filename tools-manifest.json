@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-02-08T13:15:53.292Z",
+  "categories": [
+    "Text",
+    "Encoding",
+    "Web"
+  ],
+  "tools": [
+    {
+      "id": "unicode-search",
+      "path": "tools/unicode-search/",
+      "name": "Unicode Search",
+      "category": "Text",
+      "description": "Search Unicode characters by name or code point",
+      "keywords": [
+        "unicode",
+        "character",
+        "codepoint",
+        "search"
+      ],
+      "order": 1
+    },
+    {
+      "id": "base64",
+      "path": "tools/base64/",
+      "name": "Base64 Encode / Decode",
+      "category": "Encoding",
+      "description": "Encode or decode text and files to/from Base64",
+      "keywords": [
+        "base64",
+        "encode",
+        "decode"
+      ],
+      "order": 1
+    },
+    {
+      "id": "html-encode-decode",
+      "path": "tools/html-encode-decode/",
+      "name": "HTML Encode / Decode",
+      "category": "Web",
+      "description": "Encode or decode HTML entities",
+      "keywords": [
+        "html",
+        "entity",
+        "encode",
+        "decode",
+        "escape"
+      ],
+      "order": 1
+    }
+  ]
+}

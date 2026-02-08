@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Base64 Encode / Decode</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; }
+    textarea { width: 100%; min-height: 100px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; }
+    button { font: inherit; padding: 0.5rem 1rem; margin: 0.25rem 0.25rem 0 0; cursor: pointer; }
+    .row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <label for="input">Input (text or paste Base64 to decode)</label>
+    <textarea id="input" placeholder="Type or paste here…"></textarea>
+  </div>
+  <button type="button" id="encode">Encode to Base64</button>
+  <button type="button" id="decode">Decode from Base64</button>
+  <button type="button" id="clear">Clear</button>
+  <div class="row">
+    <label for="output">Output</label>
+    <textarea id="output" readonly placeholder="Result will appear here…" tabindex="0"></textarea>
+  </div>
+
+  <script>
+    (function () {
+      var input = document.getElementById('input');
+      var output = document.getElementById('output');
+
+      function showError(msg) {
+        output.value = '# Error: ' + msg;
+      }
+
+      document.getElementById('encode').onclick = function () {
+        var s = input.value;
+        try {
+          output.value = btoa(unescape(encodeURIComponent(s)));
+        } catch (e) {
+          showError('Invalid characters for Base64.');
+        }
+      };
+
+      document.getElementById('decode').onclick = function () {
+        var s = input.value.replace(/\s/g, '');
+        try {
+          output.value = decodeURIComponent(escape(atob(s)));
+        } catch (e) {
+          showError('Invalid Base64 string.');
+        }
+      };
+
+      document.getElementById('clear').onclick = function () {
+        input.value = '';
+        output.value = '';
+      };
+    })();
+  </script>
+</body>
+</html>
