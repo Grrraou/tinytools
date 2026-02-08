@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-08T15:22:34.951Z",
+  "generatedAt": "2026-02-08T16:26:06.212Z",
   "categories": [
     "Text",
     "Encoding",
@@ -65,6 +65,25 @@
         "date"
       ],
       "order": 1
+    },
+    {
+      "id": "color-converter",
+      "path": "tools/color-converter/",
+      "name": "Color converter",
+      "category": "Other",
+      "description": "Convert between Hex, RGB, HSL, HSV/HSB, and CSS named colors. Color picker and auto-detect from text.",
+      "keywords": [
+        "color",
+        "hex",
+        "rgb",
+        "hsl",
+        "hsv",
+        "hsb",
+        "named",
+        "picker",
+        "convert"
+      ],
+      "order": 2
     }
   ]
 }

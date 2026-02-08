@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color converter</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input { -webkit-user-select: text; user-select: text; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; }
+    input[type="text"] { font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; flex: 1; min-width: 0; }
+    input[type="color"] { width: 3rem; height: 2.25rem; padding: 2px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; }
+    button { font: inherit; padding: 0.5rem 1rem; margin: 0.25rem 0.25rem 0 0; cursor: pointer; }
+    .row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .input-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .swatch { width: 2.5rem; height: 2rem; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%); background-size: 8px 8px; background-position: 0 0, 0 4px, 4px -4px, -4px 0; background-color: #fff; }
+    .formats { margin-top: 1rem; }
+    .format-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .format-row label { margin-bottom: 0; display: flex; align-items: center; gap: 0.35rem; }
+    .format-value { font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.35rem 0.5rem; background: #f5f5f5; border-radius: 4px; min-width: 10rem; }
+    .format-value.copyable { cursor: pointer; }
+    .format-value.copyable:hover { background: #eee; }
+    .error { color: #c00; margin-top: 0.5rem; }
+    .info-bubble { display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: #e0e0e0; color: #555; font-size: 0.7rem; font-weight: 600; cursor: help; position: relative; }
+    .info-bubble:hover { background: #1a73e8; color: #fff; }
+    .info-bubble .info-tooltip { visibility: hidden; position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); width: 20em; max-width: min(90vw, 320px); padding: 0.6rem 0.75rem; background: #333; color: #fff; font-size: 0.8rem; font-weight: normal; line-height: 1.4; border-radius: 6px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .info-bubble .info-tooltip::after { content: ''; position: absolute; right: 100%; top: 50%; margin-top: -6px; border: 6px solid transparent; border-right-color: #333; }
+    .info-bubble:hover .info-tooltip { visibility: visible; }
+    .info-bubble:focus-within .info-tooltip { visibility: visible; }
+    .alpha-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .alpha-row input[type="range"] { width: 8rem; }
+    .alpha-row .alpha-value { font-family: ui-monospace, monospace; font-size: 0.9rem; min-width: 3rem; }
+    .helper { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 0.85rem; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <label for="colorInput">Color (picker or paste any format)</label>
+    <div class="input-row">
+      <input type="color" id="colorPicker" value="#ff5500" aria-label="Color picker" />
+      <input type="text" id="colorInput" placeholder="e.g. #ff5500, #ff550080, rgba(255,85,0,0.5), hsl(20,100%,50%), 16733696, orange" />
+    </div>
+  </div>
+  <button type="button" id="clearBtn">Clear</button>
+
+  <div id="result" style="display: none;">
+    <div class="row">
+      <label>Preview</label>
+      <div class="swatch" id="swatch"></div>
+    </div>
+    <div class="row alpha-row">
+      <label for="alphaSlider">Alpha</label>
+      <input type="range" id="alphaSlider" min="0" max="100" value="100" step="1" aria-label="Alpha 0–100%" />
+      <span class="alpha-value" id="alphaValue" aria-live="polite">100%</span>
+    </div>
+    <div class="row formats">
+      <div class="format-row" data-format="hex">
+        <label>Hex <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-hex"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-hex" data-copy="hex"></span>
+      </div>
+      <div class="format-row" data-format="rgb">
+        <label>RGB <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-rgb"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-rgb" data-copy="rgb"></span>
+      </div>
+      <div class="format-row" data-format="hsl">
+        <label>HSL <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-hsl"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-hsl" data-copy="hsl"></span>
+      </div>
+      <div class="format-row" data-format="hsv">
+        <label>HSV / HSB <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-hsv"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-hsv" data-copy="hsv"></span>
+      </div>
+      <div class="format-row" data-format="cmyk">
+        <label>CMYK <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-cmyk"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-cmyk" data-copy="cmyk"></span>
+      </div>
+      <div class="format-row" data-format="int">
+        <label>Integer / Packed <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-int"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-int" data-copy="int"></span>
+      </div>
+      <div class="format-row" data-format="hwb">
+        <label>HWB <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-hwb"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-hwb" data-copy="hwb"></span>
+      </div>
+      <div class="format-row" data-format="named">
+        <label>Named (closest) <span class="info-bubble" tabindex="0" role="button" aria-label="Format info"><span class="info-tooltip" id="tip-named"></span>ⓘ</span></label>
+        <span class="format-value copyable" id="out-named" data-copy="named"></span>
+      </div>
+    </div>
+  </div>
+  <div id="error" class="row error" style="display: none;"></div>
+
+  <script>
+    (function () {
+      // --- Named colors (CSS / SVG, English) ---
+      var NAMED_COLORS = {
+        aliceblue:'#f0f8ff', antiquewhite:'#faebd7', aqua:'#00ffff', aquamarine:'#7fffd4', azure:'#f0ffff',
+        beige:'#f5f5dc', bisque:'#ffe4c4', black:'#000000', blanchedalmond:'#ffebcd', blue:'#0000ff',
+        blueviolet:'#8a2be2', brown:'#a52a2a', burlywood:'#deb887', cadetblue:'#5f9ea0', chartreuse:'#7fff00',
+        chocolate:'#d2691e', coral:'#ff7f50', cornflowerblue:'#6495ed', cornsilk:'#fff8dc', crimson:'#dc143c',
+        cyan:'#00ffff', darkblue:'#00008b', darkcyan:'#008b8b', darkgoldenrod:'#b8860b', darkgray:'#a9a9a9',
+        darkgreen:'#006400', darkgrey:'#a9a9a9', darkkhaki:'#bdb76b', darkmagenta:'#8b008b', darkolivegreen:'#556b2f',
+        darkorange:'#ff8c00', darkorchid:'#9932cc', darkred:'#8b0000', darksalmon:'#e9967a', darkseagreen:'#8fbc8f',
+        darkslateblue:'#483d8b', darkslategray:'#2f4f4f', darkslategrey:'#2f4f4f', darkturquoise:'#00ced1', darkviolet:'#9400d3',
+        deeppink:'#ff1493', deepskyblue:'#00bfff', dimgray:'#696969', dimgrey:'#696969', dodgerblue:'#1e90ff',
+        firebrick:'#b22222', floralwhite:'#fffaf0', forestgreen:'#228b22', fuchsia:'#ff00ff', gainsboro:'#dcdcdc',
+        ghostwhite:'#f8f8ff', gold:'#ffd700', goldenrod:'#daa520', gray:'#808080', green:'#008000', greenyellow:'#adff2f',
+        grey:'#808080', honeydew:'#f0fff0', hotpink:'#ff69b4', indianred:'#cd5c5c', indigo:'#4b0082', ivory:'#fffff0',
+        khaki:'#f0e68c', lavender:'#e6e6fa', lavenderblush:'#fff0f5', lawngreen:'#7cfc00', lemonchiffon:'#fffacd',
+        lightblue:'#add8e6', lightcoral:'#f08080', lightcyan:'#e0ffff', lightgoldenrodyellow:'#fafad2', lightgray:'#d3d3d3',
+        lightgreen:'#90ee90', lightgrey:'#d3d3d3', lightpink:'#ffb6c1', lightsalmon:'#ffa07a', lightseagreen:'#20b2aa',
+        lightskyblue:'#87cefa', lightslategray:'#778899', lightslategrey:'#778899', lightsteelblue:'#b0c4de', lightyellow:'#ffffe0',
+        lime:'#00ff00', limegreen:'#32cd32', linen:'#faf0e6', magenta:'#ff00ff', maroon:'#800000',
+        mediumaquamarine:'#66cdaa', mediumblue:'#0000cd', mediumorchid:'#ba55d3', mediumpurple:'#9370db', mediumseagreen:'#3cb371',
+        mediumslateblue:'#7b68ee', mediumspringgreen:'#00fa9a', mediumturquoise:'#48d1cc', mediumvioletred:'#c71585', midnightblue:'#191970',
+        mintcream:'#f5fffa', mistyrose:'#ffe4e1', moccasin:'#ffe4b5', navajowhite:'#ffdead', navy:'#000080',
+        oldlace:'#fdf5e6', olive:'#808000', olivedrab:'#6b8e23', orange:'#ffa500', orangered:'#ff4500',
+        orchid:'#da70d6', palegoldenrod:'#eee8aa', palegreen:'#98fb98', paleturquoise:'#afeeee', palevioletred:'#db7093',
+        papayawhip:'#ffefd5', peachpuff:'#ffdab9', peru:'#cd853f', pink:'#ffc0cb', plum:'#dda0dd',
+        powderblue:'#b0e0e6', purple:'#800080', rebeccapurple:'#663399', red:'#ff0000', rosybrown:'#bc8f8f',
+        royalblue:'#4169e1', saddlebrown:'#8b4513', salmon:'#fa8072', sandybrown:'#f4a460', seagreen:'#2e8b57',
+        seashell:'#fff5ee', sienna:'#a0522d', silver:'#c0c0c0', skyblue:'#87ceeb', slateblue:'#6a5acd',
+        slategray:'#708090', slategrey:'#708090', snow:'#fffafa', springgreen:'#00ff7f', steelblue:'#4682b4',
+        tan:'#d2b48c', teal:'#008080', thistle:'#d8bfd8', tomato:'#ff6347', turquoise:'#40e0d0',
+        violet:'#ee82ee', wheat:'#f5deb3', white:'#ffffff', whitesmoke:'#f5f5f5', yellow:'#ffff00', yellowgreen:'#9acd32'
+      };
+
+      // --- Format descriptions (for info bubbles) ---
+      var FORMAT_TIPS = {
+        hex: 'Hex: Red, green, and blue as hexadecimal (e.g. #RRGGBB or #RGB). Optional #RRGGBBAA for alpha. Common in CSS, design tools, and APIs.',
+        rgb: 'RGB: Red, green, blue as 0–255 (or 0–1 in some APIs). The additive light model. Used in CSS, image APIs, and most programming environments.',
+        hsl: 'HSL: Hue (0–360°), Saturation (0–100%), Lightness (0–100%). Intuitive for tweaking “same hue, lighter/darker”. Common in CSS and design tools.',
+        hsv: 'HSV/HSB: Hue, Saturation, Value/Brightness. Similar to HSL but “value” is max(R,G,B). Used in many color pickers (e.g. Photoshop, GIMP); not in CSS.',
+        cmyk: 'CMYK: Cyan, Magenta, Yellow, Key (black) as 0–100%. Subtractive model for print. Used in printing, PDFs, and professional design (e.g. InDesign).',
+        int: 'Integer / Packed: 24-bit color as one number (decimal or 0x hex). With alpha: 32-bit 0xRRGGBBAA (alpha in low byte). Common in APIs, databases, and low-level code.',
+        hwb: 'HWB: Hue (0–360°), Whiteness (0–100%), Blackness (0–100%). Intuitive “mix of hue + white + black”. Supported in CSS Color Level 4.',
+        named: 'Named colors: English keywords (e.g. red, coral) from the CSS/SVG standard. Handy in CSS and quick prototyping; limited palette.'
+      };
+
+      // --- Internal: { r, g, b, a } in 0–1 ---
+      function hexToRgba(hex) {
+        hex = hex.replace(/^#/, '');
+        var r, g, b, a = 1;
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16) / 255;
+          g = parseInt(hex[1] + hex[1], 16) / 255;
+          b = parseInt(hex[2] + hex[2], 16) / 255;
+        } else if (hex.length === 6) {
+          r = parseInt(hex.slice(0, 2), 16) / 255;
+          g = parseInt(hex.slice(2, 4), 16) / 255;
+          b = parseInt(hex.slice(4, 6), 16) / 255;
+        } else if (hex.length === 8) {
+          r = parseInt(hex.slice(0, 2), 16) / 255;
+          g = parseInt(hex.slice(2, 4), 16) / 255;
+          b = parseInt(hex.slice(4, 6), 16) / 255;
+          a = parseInt(hex.slice(6, 8), 16) / 255;
+        } else return null;
+        if ([r, g, b, a].some(isNaN)) return null;
+        return { r: r, g: g, b: b, a: a };
+      }
+
+      function rgbaToHex(rgba, withAlpha) {
+        var r = Math.round(rgba.r * 255);
+        var g = Math.round(rgba.g * 255);
+        var b = Math.round(rgba.b * 255);
+        var hex = '#' + [r, g, b].map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+        if (withAlpha && rgba.a < 1) hex += ('0' + Math.round(rgba.a * 255).toString(16)).slice(-2);
+        return hex;
+      }
+
+      function rgbaToRgbString(rgba) {
+        var r = Math.round(rgba.r * 255);
+        var g = Math.round(rgba.g * 255);
+        var b = Math.round(rgba.b * 255);
+        if (rgba.a < 1) return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + Math.round(rgba.a * 100) / 100 + ')';
+        return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+      }
+
+      function hslToRgba(h, s, l, a) {
+        if (a === undefined) a = 1;
+        s /= 100; l /= 100;
+        var c = (1 - Math.abs(2 * l - 1)) * s;
+        var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        var m = l - c / 2;
+        var r = 0, g = 0, b = 0;
+        if (h < 60) { r = c; g = x; }
+        else if (h < 120) { r = x; g = c; }
+        else if (h < 180) { g = c; b = x; }
+        else if (h < 240) { g = x; b = c; }
+        else if (h < 300) { r = x; b = c; }
+        else { r = c; b = x; }
+        return { r: r + m, g: g + m, b: b + m, a: a };
+      }
+
+      function rgbaToHsl(rgba) {
+        var r = rgba.r, g = rgba.g, b = rgba.b;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
+        if (max === min) { h = 0; s = 0; }
+        else {
+          var d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+          else if (max === g) h = (b - r) / d + 2;
+          else h = (r - g) / d + 4;
+          h /= 6;
+        }
+        return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100), a: rgba.a };
+      }
+
+      function rgbaToHsv(rgba) {
+        var r = rgba.r, g = rgba.g, b = rgba.b;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var v = max, d = max - min;
+        var s = max === 0 ? 0 : d / max;
+        var h;
+        if (max === min) h = 0;
+        else if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h /= 6;
+        return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100), a: rgba.a };
+      }
+
+      function hsvToRgba(h, s, v, a) {
+        if (a === undefined) a = 1;
+        s /= 100; v /= 100;
+        var c = v * s;
+        var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        var m = v - c;
+        var r = 0, g = 0, b = 0;
+        if (h < 60) { r = c; g = x; }
+        else if (h < 120) { r = x; g = c; }
+        else if (h < 180) { g = c; b = x; }
+        else if (h < 240) { g = x; b = c; }
+        else if (h < 300) { r = x; b = c; }
+        else { r = c; b = x; }
+        return { r: r + m, g: g + m, b: b + m, a: a };
+      }
+
+      // CMYK: C,M,Y,K in 0-1; display as 0-100%
+      function rgbaToCmyk(rgba) {
+        var r = rgba.r, g = rgba.g, b = rgba.b;
+        var k = 1 - Math.max(r, g, b);
+        if (k >= 1) return { c: 0, m: 0, y: 0, k: 100 };
+        var c = (1 - r - k) / (1 - k);
+        var m = (1 - g - k) / (1 - k);
+        var y = (1 - b - k) / (1 - k);
+        return { c: Math.round(c * 100), m: Math.round(m * 100), y: Math.round(y * 100), k: Math.round(k * 100) };
+      }
+
+      function cmykToRgba(c, m, y, k, a) {
+        if (a === undefined) a = 1;
+        c /= 100; m /= 100; y /= 100; k /= 100;
+        var r = (1 - c) * (1 - k);
+        var g = (1 - m) * (1 - k);
+        var b = (1 - y) * (1 - k);
+        return { r: r, g: g, b: b, a: a };
+      }
+
+      // 24-bit packed: (R<<16)|(G<<8)|B. 32-bit with alpha: (R<<24)|(G<<16)|(B<<8)|A (alpha in low byte).
+      function rgbaToInt24(rgba) {
+        var r = Math.round(rgba.r * 255);
+        var g = Math.round(rgba.g * 255);
+        var b = Math.round(rgba.b * 255);
+        return (r << 16) | (g << 8) | b;
+      }
+
+      function rgbaToInt32(rgba) {
+        var r = Math.round(rgba.r * 255);
+        var g = Math.round(rgba.g * 255);
+        var b = Math.round(rgba.b * 255);
+        var a = Math.round(rgba.a * 255);
+        return (r << 24) | (g << 16) | (b << 8) | a;
+      }
+
+      function intToRgba(n) {
+        n = n >>> 0;
+        if (n > 0xffffff) {
+          var r = (n >> 24) & 255;
+          var g = (n >> 16) & 255;
+          var b = (n >> 8) & 255;
+          var a = (n & 255) / 255;
+          return { r: r / 255, g: g / 255, b: b / 255, a: a };
+        }
+        var r = (n >> 16) & 255;
+        var g = (n >> 8) & 255;
+        var b = n & 255;
+        return { r: r / 255, g: g / 255, b: b / 255, a: 1 };
+      }
+
+      // HWB: hue 0-360, W and B 0-100. W+B can be up to 100 (gray when W+B=100).
+      function rgbaToHwb(rgba) {
+        var hsv = rgbaToHsv(rgba);
+        var v = hsv.v / 100, s = hsv.s / 100;
+        var w = (1 - s) * v * 100;
+        var b = (1 - v) * 100;
+        return { h: hsv.h, w: Math.round(w), b: Math.round(b), a: rgba.a };
+      }
+
+      function hwbToRgba(h, w, b, a) {
+        if (a === undefined) a = 1;
+        w /= 100; b /= 100;
+        if (w + b >= 1) {
+          var g = w / (w + b);
+          return { r: g, g: g, b: g, a: a };
+        }
+        var pure = hsvToRgba(h, 100, 100, 1);
+        var t = 1 - w - b;
+        return { r: pure.r * t + w, g: pure.g * t + w, b: pure.b * t + w, a: a };
+      }
+
+      function parseRgb(s) {
+        var m = s.match(/rgba?\s*\(\s*([\d.]+)\s*[,/\s]\s*([\d.]+)\s*[,/\s]\s*([\d.]+)(?:\s*[,/\s]\s*([\d.]+%?))?\s*\)/i);
+        if (!m) return null;
+        var r = parseFloat(m[1]); var g = parseFloat(m[2]); var b = parseFloat(m[3]);
+        var a = m[4] != null ? (m[4].indexOf('%') >= 0 ? parseFloat(m[4]) / 100 : parseFloat(m[4])) : 1;
+        if (r > 1 || g > 1 || b > 1) { r /= 255; g /= 255; b /= 255; }
+        if (r < 0 || r > 1 || g < 0 || g > 1 || b < 0 || b > 1 || a < 0 || a > 1) return null;
+        return { r: r, g: g, b: b, a: a };
+      }
+
+      function parseHsl(s) {
+        var m = s.match(/hsla?\s*\(\s*([\d.]+)\s*[,/\s]\s*([\d.]+)%\s*[,/\s]\s*([\d.]+)%(?:\s*[,/\s]\s*([\d.]+%?))?\s*\)/i);
+        if (!m) return null;
+        var h = parseFloat(m[1]) % 360; if (h < 0) h += 360;
+        var s = Math.min(100, Math.max(0, parseFloat(m[2])));
+        var l = Math.min(100, Math.max(0, parseFloat(m[3])));
+        var a = m[4] != null ? (m[4].indexOf('%') >= 0 ? parseFloat(m[4]) / 100 : parseFloat(m[4])) : 1;
+        return hslToRgba(h, s, l, a);
+      }
+
+      function parseHsv(s) {
+        var m = s.match(/hsv(?:a)?\s*\(\s*([\d.]+)\s*[,/\s]\s*([\d.]+)%\s*[,/\s]\s*([\d.]+)%(?:\s*[,/\s]\s*([\d.]+%?))?\s*\)/i)
+          || s.match(/hsb(?:a)?\s*\(\s*([\d.]+)\s*[,/\s]\s*([\d.]+)%\s*[,/\s]\s*([\d.]+)%(?:\s*[,/\s]\s*([\d.]+%?))?\s*\)/i);
+        if (!m) return null;
+        var h = parseFloat(m[1]) % 360; if (h < 0) h += 360;
+        var s = Math.min(100, Math.max(0, parseFloat(m[2])));
+        var v = Math.min(100, Math.max(0, parseFloat(m[3])));
+        var a = m[4] != null ? (m[4].indexOf('%') >= 0 ? parseFloat(m[4]) / 100 : parseFloat(m[4])) : 1;
+        return hsvToRgba(h, s, v, a);
+      }
+
+      function parseHex(s) {
+        var m = s.match(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/);
+        return m ? hexToRgba(m[1]) : null;
+      }
+
+      function parseNamed(s) {
+        var key = s.trim().toLowerCase().replace(/\s+/g, '');
+        if (NAMED_COLORS[key]) return hexToRgba(NAMED_COLORS[key].replace(/^#/, ''));
+        return null;
+      }
+
+      function parseCmyk(s) {
+        var m = s.match(/cmyk(?:a)?\s*\(\s*([\d.]+)\s*%?\s*[,/\s]\s*([\d.]+)\s*%?\s*[,/\s]\s*([\d.]+)\s*%?\s*[,/\s]\s*([\d.]+)\s*%?(?:\s*[,/\s]\s*[\d.]+%?)?\s*\)/i);
+        if (!m) return null;
+        var c = Math.min(100, Math.max(0, parseFloat(m[1])));
+        var mag = Math.min(100, Math.max(0, parseFloat(m[2])));
+        var y = Math.min(100, Math.max(0, parseFloat(m[3])));
+        var k = Math.min(100, Math.max(0, parseFloat(m[4])));
+        return cmykToRgba(c, mag, y, k, 1);
+      }
+
+      function parseIntPacked(s) {
+        var t = s.trim();
+        var n = null;
+        if (/^0x[0-9A-Fa-f]{1,8}$/.test(t)) n = parseInt(t.slice(2), 16);
+        else if (/^\d+$/.test(t)) n = parseInt(t, 10);
+        if (n == null || isNaN(n)) return null;
+        n = n >>> 0;
+        return intToRgba(n);
+      }
+
+      function parseHwb(s) {
+        var m = s.match(/hwb(?:a)?\s*\(\s*([\d.]+)\s*[,/\s]\s*([\d.]+)%\s*[,/\s]\s*([\d.]+)%(?:\s*[,/\s]\s*([\d.]+%?))?\s*\)/i);
+        if (!m) return null;
+        var h = parseFloat(m[1]) % 360; if (h < 0) h += 360;
+        var w = Math.min(100, Math.max(0, parseFloat(m[2])));
+        var b = Math.min(100, Math.max(0, parseFloat(m[3])));
+        var a = m[4] != null ? (m[4].indexOf('%') >= 0 ? parseFloat(m[4]) / 100 : parseFloat(m[4])) : 1;
+        return hwbToRgba(h, w, b, a);
+      }
+
+      function parseColorInput(str) {
+        str = (str || '').trim();
+        if (!str) return null;
+        return parseHex(str) || parseRgb(str) || parseHsl(str) || parseHsv(str) || parseCmyk(str) || parseIntPacked(str) || parseHwb(str) || parseNamed(str);
+      }
+
+      function closestNamedColor(rgba) {
+        var r = Math.round(rgba.r * 255), g = Math.round(rgba.g * 255), b = Math.round(rgba.b * 255);
+        var best = null, bestDist = Infinity;
+        for (var name in NAMED_COLORS) {
+          var hex = NAMED_COLORS[name].replace(/^#/, '');
+          var nr = parseInt(hex.slice(0, 2), 16);
+          var ng = parseInt(hex.slice(2, 4), 16);
+          var nb = parseInt(hex.slice(4, 6), 16);
+          var dist = (r - nr) * (r - nr) + (g - ng) * (g - ng) + (b - nb) * (b - nb);
+          if (dist < bestDist) { bestDist = dist; best = name; }
+        }
+        return best;
+      }
+
+      function hslString(rgba) {
+        var hsl = rgbaToHsl(rgba);
+        if (rgba.a < 1) return 'hsla(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%, ' + Math.round(rgba.a * 100) / 100 + ')';
+        return 'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)';
+      }
+
+      function hsvString(rgba) {
+        var hsv = rgbaToHsv(rgba);
+        if (rgba.a < 1) return 'hsva(' + hsv.h + ', ' + hsv.s + '%, ' + hsv.v + '%, ' + Math.round(rgba.a * 100) / 100 + ')';
+        return 'hsv(' + hsv.h + ', ' + hsv.s + '%, ' + hsv.v + '%)';
+      }
+
+      function cmykString(rgba) {
+        var cmyk = rgbaToCmyk(rgba);
+        return 'cmyk(' + cmyk.c + '%, ' + cmyk.m + '%, ' + cmyk.y + '%, ' + cmyk.k + '%)';
+      }
+
+      function intString(rgba) {
+        if (rgba.a < 1) {
+          var n32 = rgbaToInt32(rgba) >>> 0;
+          var hex32 = '0x' + ('00000000' + n32.toString(16)).slice(-8);
+          return n32 + '  (' + hex32 + ')';
+        }
+        var n = rgbaToInt24(rgba);
+        var hex = '0x' + n.toString(16);
+        return n + '  (' + hex + ')';
+      }
+
+      function hwbString(rgba) {
+        var hwb = rgbaToHwb(rgba);
+        if (rgba.a < 1) return 'hwba(' + hwb.h + ', ' + hwb.w + '%, ' + hwb.b + '%, ' + Math.round(rgba.a * 100) / 100 + ')';
+        return 'hwb(' + hwb.h + ', ' + hwb.w + '%, ' + hwb.b + '%)';
+      }
+
+      // --- UI ---
+      var colorPicker = document.getElementById('colorPicker');
+      var colorInput = document.getElementById('colorInput');
+      var result = document.getElementById('result');
+      var errorEl = document.getElementById('error');
+      var swatch = document.getElementById('swatch');
+      var alphaSlider = document.getElementById('alphaSlider');
+      var alphaValueEl = document.getElementById('alphaValue');
+      var currentRgba = null;
+
+      function setPickerFromRgba(rgba) {
+        colorPicker.value = rgbaToHex(rgba, false);
+      }
+
+      function pushQuery(colorValue) {
+        if (window.parent !== window) {
+          var query = {};
+          if ((colorValue || '').trim()) query.c = colorValue.trim();
+          window.parent.postMessage({ type: 'helpers-set-query', query: query }, location.origin);
+        }
+      }
+
+      function updateAlphaUI(a) {
+        var pct = Math.round(a * 100);
+        alphaSlider.value = pct;
+        alphaValueEl.textContent = pct + '%';
+      }
+
+      function updateOutputs(rgba) {
+        currentRgba = { r: rgba.r, g: rgba.g, b: rgba.b, a: rgba.a };
+        result.style.display = 'block';
+        errorEl.style.display = 'none';
+        var hex = rgbaToHex(rgba, rgba.a < 1);
+        swatch.style.backgroundColor = rgbaToRgbString(rgba);
+        document.getElementById('out-hex').textContent = hex;
+        document.getElementById('out-rgb').textContent = rgbaToRgbString(rgba);
+        document.getElementById('out-hsl').textContent = hslString(rgba);
+        document.getElementById('out-hsv').textContent = hsvString(rgba);
+        document.getElementById('out-cmyk').textContent = cmykString(rgba);
+        document.getElementById('out-int').textContent = intString(rgba);
+        document.getElementById('out-hwb').textContent = hwbString(rgba);
+        document.getElementById('out-named').textContent = closestNamedColor(rgba);
+        setPickerFromRgba(rgba);
+        updateAlphaUI(rgba.a);
+        pushQuery(hex);
+      }
+
+      function showError(msg) {
+        result.style.display = 'none';
+        errorEl.style.display = 'block';
+        errorEl.textContent = msg;
+      }
+
+      function runConvert() {
+        var raw = colorInput.value.trim();
+        if (!raw) {
+          result.style.display = 'none';
+          errorEl.style.display = 'none';
+          return;
+        }
+        var rgba = parseColorInput(raw);
+        if (rgba) updateOutputs(rgba);
+        else showError('Could not detect color format. Try hex (#fff), rgb(255,0,0), hsl(0,100%,50%), cmyk(0,67,100,0), 16733696 or 0xff5500, hwb(20,0%,0%), or a named color (e.g. coral).');
+      }
+
+      alphaSlider.addEventListener('input', function () {
+        var a = parseInt(alphaSlider.value, 10) / 100;
+        alphaValueEl.textContent = alphaSlider.value + '%';
+        if (currentRgba) {
+          currentRgba.a = a;
+          updateOutputs(currentRgba);
+        }
+      });
+
+      colorPicker.addEventListener('input', function () {
+        colorInput.value = colorPicker.value;
+        var rgba = hexToRgba(colorPicker.value.slice(1));
+        if (rgba) updateOutputs(rgba);
+      });
+
+      colorInput.addEventListener('input', runConvert);
+      colorInput.addEventListener('paste', function () { setTimeout(runConvert, 0); });
+      colorInput.addEventListener('change', runConvert);
+
+      document.getElementById('clearBtn').onclick = function () {
+        colorInput.value = '';
+        colorPicker.value = '#ff5500';
+        currentRgba = null;
+        alphaSlider.value = 100;
+        alphaValueEl.textContent = '100%';
+        result.style.display = 'none';
+        errorEl.style.display = 'none';
+        pushQuery('');
+      };
+
+      // Copy on click
+      result.addEventListener('click', function (e) {
+        var el = e.target.closest('.format-value.copyable');
+        if (!el) return;
+        var text = el.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            var t = el.textContent;
+            el.textContent = 'Copied!';
+            setTimeout(function () { el.textContent = t; }, 600);
+          });
+        }
+      });
+
+      // Info bubble content
+      Object.keys(FORMAT_TIPS).forEach(function (key) {
+        var tip = document.getElementById('tip-' + key);
+        if (tip) tip.textContent = FORMAT_TIPS[key];
+      });
+
+      // Initial run from URL (same param name we push: c)
+      var params = new URLSearchParams(window.location.search);
+      var q = params.get('c');
+      if (q) {
+        colorInput.value = decodeURIComponent(q);
+        runConvert();
+      }
+    })();
+  </script>
+</body>
+</html>
