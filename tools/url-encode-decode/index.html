@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Encode / Decode</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; }
+    textarea { width: 100%; min-height: 100px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; }
+    button { font: inherit; padding: 0.5rem 1rem; margin: 0.25rem 0.25rem 0 0; cursor: pointer; }
+    .row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .note { font-size: 0.85rem; color: #555; margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <label for="input">Input</label>
+    <textarea id="input" placeholder="Paste text or percent-encoded string (e.g. hello world or hello%20world)…"></textarea>
+    <p class="note">Encode: use for a single component (query value or path segment). Decode: reverses %XX and treats + as space.</p>
+  </div>
+  <button type="button" id="encode">Encode (→ %XX)</button>
+  <button type="button" id="decode">Decode (← %XX)</button>
+  <button type="button" id="clear">Clear</button>
+  <div class="row">
+    <label for="output">Output</label>
+    <textarea id="output" readonly placeholder="Result…" tabindex="0"></textarea>
+  </div>
+
+  <script>
+    (function () {
+      var input = document.getElementById('input');
+      var output = document.getElementById('output');
+
+      function pushQuery(text, mode) {
+        if (window.parent !== window) {
+          var query = {};
+          if ((text || '').trim()) query.t = text.trim();
+          if (mode) query.m = mode;
+          window.parent.postMessage({ type: 'helpers-set-query', query: query }, location.origin);
+        }
+      }
+
+      document.getElementById('encode').onclick = function () {
+        try {
+          output.value = encodeURIComponent(input.value);
+          pushQuery(input.value, 'encode');
+        } catch (e) {
+          output.value = '# Encode error';
+        }
+      };
+
+      document.getElementById('decode').onclick = function () {
+        try {
+          output.value = decodeURIComponent(input.value.replace(/\+/g, ' '));
+          pushQuery(input.value, 'decode');
+        } catch (e) {
+          output.value = '# Decode error (invalid % sequence)';
+        }
+      };
+
+      document.getElementById('clear').onclick = function () {
+        input.value = '';
+        output.value = '';
+        pushQuery('', '');
+      };
+
+      var params = new URLSearchParams(window.location.search);
+      var t = params.get('t');
+      var m = params.get('m');
+      if (t != null) input.value = t;
+      if (m === 'encode' && (t || '').trim()) {
+        try {
+          output.value = encodeURIComponent((t || '').trim());
+        } catch (e) {}
+      } else if (m === 'decode' && (t || '').trim()) {
+        try {
+          output.value = decodeURIComponent((t || '').trim().replace(/\+/g, ' '));
+        } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>

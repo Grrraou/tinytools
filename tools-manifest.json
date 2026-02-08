@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-08T16:26:06.212Z",
+  "generatedAt": "2026-02-08T17:26:09.627Z",
   "categories": [
     "Text",
     "Encoding",
@@ -48,6 +48,22 @@
         "escape"
       ],
       "order": 1
+    },
+    {
+      "id": "url-encode-decode",
+      "path": "tools/url-encode-decode/",
+      "name": "URL Encode / Decode",
+      "category": "Web",
+      "description": "Percent-encode for URLs (query or path segment) or decode percent-encoded text",
+      "keywords": [
+        "url",
+        "encode",
+        "decode",
+        "percent",
+        "escape",
+        "query"
+      ],
+      "order": 2
     },
     {
       "id": "time-converter",
