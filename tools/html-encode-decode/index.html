@@ -33,6 +33,15 @@
       var output = document.getElementById('output');
       var div = document.createElement('div');
 
+      function pushQuery(text, mode) {
+        if (window.parent !== window) {
+          var query = {};
+          if ((text || '').trim()) query.t = text.trim();
+          if (mode) query.m = mode;
+          window.parent.postMessage({ type: 'helpers-set-query', query: query }, location.origin);
+        }
+      }
+
       // Encode: escape 5 special chars, then numeric entities &#code; for everything non-ASCII. No per-char table.
       function encodeHtml(s) {
         var out = '';
@@ -57,11 +66,13 @@
 
       document.getElementById('encode').onclick = function () {
         output.value = encodeHtml(input.value);
+        pushQuery(input.value, 'encode');
       };
 
       document.getElementById('decode').onclick = function () {
         try {
           output.value = decodeHtml(input.value);
+          pushQuery(input.value, 'decode');
         } catch (e) {
           output.value = '# Decode error';
         }
@@ -70,7 +81,20 @@
       document.getElementById('clear').onclick = function () {
         input.value = '';
         output.value = '';
+        pushQuery('', '');
       };
+
+      var params = new URLSearchParams(window.location.search);
+      var t = params.get('t');
+      var m = params.get('m');
+      if (t != null) input.value = t;
+      if (m === 'encode' && (t || '').trim()) {
+        output.value = encodeHtml((t || '').trim());
+      } else if (m === 'decode' && (t || '').trim()) {
+        try {
+          output.value = decodeHtml((t || '').trim());
+        } catch (e) {}
+      }
     })();
   </script>
 </body>

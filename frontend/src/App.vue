@@ -1,18 +1,38 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import ToolList from './components/ToolList.vue';
 import ToolFrame from './components/ToolFrame.vue';
 
+const route = useRoute();
+const router = useRouter();
 const manifest = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const searchQuery = ref('');
-const selectedTool = ref(null);
 const selectedCategory = ref(null);
 
 const manifestUrl = '/tools-manifest.json';
 
+// Selected tool is driven by URL: /t/:slug
+const selectedTool = computed(() => {
+  if (route.name !== 'tool' || !manifest.value?.tools) return null;
+  return manifest.value.tools.find((t) => t.id === route.params.slug) || null;
+});
+
+// Tools can update the shell URL via postMessage so links stay shareable
+function onMessage(e) {
+  if (e.origin !== window.location.origin) return;
+  if (e.data?.type !== 'helpers-set-query') return;
+  if (route.name !== 'tool') return;
+  const q = e.data.query;
+  if (q && typeof q === 'object') {
+    router.replace({ name: 'tool', params: { slug: route.params.slug }, query: q });
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('message', onMessage);
   try {
     const res = await fetch(manifestUrl);
     if (!res.ok) throw new Error('Failed to load tools');
@@ -22,6 +42,10 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('message', onMessage);
 });
 
 const categories = computed(() => manifest.value?.categories ?? []);
@@ -44,14 +68,6 @@ const filteredTools = computed(() => {
   return list;
 });
 
-function selectTool(tool) {
-  selectedTool.value = tool;
-}
-
-function clearSelection() {
-  selectedTool.value = null;
-}
-
 function selectCategory(cat) {
   selectedCategory.value = selectedCategory.value === cat ? null : cat;
 }
@@ -60,10 +76,10 @@ function selectCategory(cat) {
 <template>
   <div class="app">
     <header class="header">
-      <a href="#" class="logo" @click.prevent="clearSelection">
+      <router-link to="/" class="logo">
         <img src="/img/logo.png" alt="" class="logo-img" />
         <span>Helpers</span>
-      </a>
+      </router-link>
       <p class="tagline">Dev tools — encoding, hashing, text &amp; more</p>
     </header>
 
@@ -87,13 +103,12 @@ function selectCategory(cat) {
             :tools="filteredTools"
             :selected-tool="selectedTool"
             :selected-category="selectedCategory"
-            @select-tool="selectTool"
             @select-category="selectCategory"
           />
         </template>
       </aside>
       <section class="content">
-        <ToolFrame v-if="selectedTool" :tool="selectedTool" />
+        <ToolFrame v-if="selectedTool" :tool="selectedTool" :query="route.query" />
         <div v-else class="welcome">
           <h2>Pick a tool</h2>
           <p>Choose a tool from the list or use search. Each tool runs in its own sandbox.</p>

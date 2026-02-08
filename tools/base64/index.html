@@ -36,10 +36,20 @@
         output.value = '# Error: ' + msg;
       }
 
+      function pushQuery(text, mode) {
+        if (window.parent !== window) {
+          var query = {};
+          if ((text || '').trim()) query.t = text.trim();
+          if (mode) query.m = mode;
+          window.parent.postMessage({ type: 'helpers-set-query', query: query }, location.origin);
+        }
+      }
+
       document.getElementById('encode').onclick = function () {
         var s = input.value;
         try {
           output.value = btoa(unescape(encodeURIComponent(s)));
+          pushQuery(s, 'encode');
         } catch (e) {
           showError('Invalid characters for Base64.');
         }
@@ -49,6 +59,7 @@
         var s = input.value.replace(/\s/g, '');
         try {
           output.value = decodeURIComponent(escape(atob(s)));
+          pushQuery(input.value, 'decode');
         } catch (e) {
           showError('Invalid Base64 string.');
         }
@@ -57,7 +68,23 @@
       document.getElementById('clear').onclick = function () {
         input.value = '';
         output.value = '';
+        pushQuery('', '');
       };
+
+      var params = new URLSearchParams(window.location.search);
+      var t = params.get('t');
+      var m = params.get('m');
+      if (t != null) input.value = t;
+      if (m === 'encode' && (t || '').trim()) {
+        try {
+          output.value = btoa(unescape(encodeURIComponent((t || '').trim())));
+        } catch (e) {}
+      } else if (m === 'decode' && (t || '').trim()) {
+        try {
+          var s = (t || '').trim().replace(/\s/g, '');
+          output.value = decodeURIComponent(escape(atob(s)));
+        } catch (e) {}
+      }
     })();
   </script>
 </body>

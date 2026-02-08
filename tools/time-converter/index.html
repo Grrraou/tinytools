@@ -275,6 +275,7 @@
         if (tzFilter) tzFilter.value = '';
         result.style.display = 'none';
         errorEl.style.display = 'none';
+        if (window.parent !== window) window.parent.postMessage({ type: 'helpers-set-query', query: {} }, location.origin);
       };
 
       function applyTzFilter() {
@@ -298,8 +299,47 @@
       }
 
       input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') run();
+        if (e.key === 'Enter') { run(); pushQuery(); }
       });
+
+      function pushQuery() {
+        if (window.parent === window) return;
+        var query = {};
+        if ((input.value || '').trim()) query.ts = input.value.trim();
+        if (tzFilter && (tzFilter.value || '').trim()) query.tz = tzFilter.value.trim();
+        window.parent.postMessage({ type: 'helpers-set-query', query: query }, location.origin);
+      }
+
+      var tzDebounce;
+      if (tzFilter) {
+        tzFilter.addEventListener('input', function () {
+          applyTzFilter();
+          clearTimeout(tzDebounce);
+          tzDebounce = setTimeout(pushQuery, 400);
+        });
+      }
+
+      document.getElementById('convert').onclick = function () {
+        run();
+        pushQuery();
+      };
+      document.getElementById('now').onclick = function () {
+        input.value = String(Date.now());
+        run();
+        pushQuery();
+      };
+
+      var params = new URLSearchParams(window.location.search);
+      var tsParam = params.get('ts');
+      var tzParam = params.get('tz');
+      if (tsParam != null && tsParam !== '') {
+        input.value = tsParam.trim();
+        run();
+      }
+      if (tzParam != null && tzFilter) {
+        tzFilter.value = tzParam.trim();
+        applyTzFilter();
+      }
     })();
   </script>
 </body>

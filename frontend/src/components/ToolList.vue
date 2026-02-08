@@ -6,7 +6,7 @@ defineProps({
   selectedCategory: { type: String, default: null },
 });
 
-const emit = defineEmits(['select-tool', 'select-category']);
+const emit = defineEmits(['select-category']);
 </script>
 
 <template>
@@ -25,15 +25,14 @@ const emit = defineEmits(['select-tool', 'select-category']);
     </nav>
     <ul class="tools" role="list">
       <li v-for="tool in tools" :key="tool.id" class="tool-item">
-        <button
-          type="button"
+        <router-link
+          :to="{ name: 'tool', params: { slug: tool.id } }"
           class="tool-btn"
           :class="{ active: selectedTool?.id === tool.id }"
-          @click="emit('select-tool', tool)"
         >
           <span class="tool-name">{{ tool.name }}</span>
           <span v-if="tool.description" class="tool-desc">{{ tool.description }}</span>
-        </button>
+        </router-link>
       </li>
     </ul>
     <p v-if="tools.length === 0" class="no-results">No tools match your search.</p>
@@ -99,6 +98,7 @@ const emit = defineEmits(['select-tool', 'select-category']);
   font: inherit;
   cursor: pointer;
   border-left: 3px solid transparent;
+  text-decoration: none;
 }
 
 .tool-btn:hover {

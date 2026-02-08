@@ -4,6 +4,7 @@ A **front-first** dev tools collection (Unicode search, Base64, HTML encode/deco
 
 ## Features
 
+- **URL paths** — Each tool has a direct URL: `/t/<slug>` (e.g. `/t/unicode-search`, `/t/time-converter`). Query parameters are passed into the tool iframe so you can link to results or filters (e.g. `/t/time-converter?ts=1707350400`). Helps with indexing and shareable links.
 - **Search & categories** — Find tools by name, description, or keywords; filter by category.
 - **Tool discovery** — Each tool is a folder with `index.html` and optional `meta.json`. Run `npm run generate-manifest` and it appears in the UI.
 - **Secure** — Tools run in sandboxed iframes; backend only serves static files and manifest; strict CSP and path validation.
@@ -72,6 +73,16 @@ Run `make help` for all targets. Common: `make build`, `make run`, `make dev`, `
 - One main file: `index.html`. No path traversal; backend only serves `index.html` under each tool slug.
 - Tools run in an iframe with `sandbox="allow-scripts allow-same-origin"`. Prefer client-side logic so you don’t need the backend.
 - Keep tools self-contained (inline or same-origin scripts only) so they work with the default CSP.
+- **URL parameters (norm for all tools):** (1) **Read on load** — Use `URLSearchParams(window.location.search)` to restore state (filters, input, mode) so direct links work. (2) **Sync URL on change** — When the user changes state (search, category, encode/decode, etc.), tell the shell to update the address bar so the link stays shareable: `if (window.parent !== window) window.parent.postMessage({ type: 'helpers-set-query', query: { param: value, ... } }, location.origin);` The shell will not reload the iframe. Param names are tool-specific; keep them short and document below.
+
+**URL params by tool:**
+
+| Tool | Params | Description |
+|------|--------|--------------|
+| unicode-search | `q`, `cat` | Search text; category name (e.g. `Arrows` or empty for All). |
+| base64 | `t`, `m` | Input text (`t`); mode `encode` or `decode`. |
+| html-encode-decode | `t`, `m` | Input text; mode `encode` or `decode`. |
+| time-converter | `ts`, `tz` | Timestamp or date string; timezone filter substring. |
 
 ## Project layout
 

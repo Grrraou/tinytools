@@ -1,13 +1,27 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
   tool: { type: Object, required: true },
+  query: { type: Object, default: () => ({}) },
 });
+
+// Use initial query for iframe src so that when the tool updates the URL via postMessage,
+// we don't reload the iframe (we only update the address bar).
+const initialQuery = ref({ ...props.query });
+watch(
+  () => props.tool.id,
+  () => {
+    initialQuery.value = { ...props.query };
+  },
+  { immediate: true }
+);
 
 const toolUrl = computed(() => {
   const base = '/tools/' + encodeURIComponent(props.tool.id) + '/';
-  return base + 'index.html';
+  const path = base + 'index.html';
+  const q = new URLSearchParams(initialQuery.value).toString();
+  return q ? path + '?' + q : path;
 });
 </script>
 
