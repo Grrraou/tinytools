@@ -1,9 +1,10 @@
 {
-  "generatedAt": "2026-02-08T13:15:53.292Z",
+  "generatedAt": "2026-02-08T15:22:34.951Z",
   "categories": [
     "Text",
     "Encoding",
-    "Web"
+    "Web",
+    "Other"
   ],
   "tools": [
     {
@@ -45,6 +46,23 @@
         "encode",
         "decode",
         "escape"
+      ],
+      "order": 1
+    },
+    {
+      "id": "time-converter",
+      "path": "tools/time-converter/",
+      "name": "Time converter",
+      "category": "Other",
+      "description": "Convert timestamps (Unix, ISO) and view the same moment in any time zone",
+      "keywords": [
+        "time",
+        "timestamp",
+        "timezone",
+        "unix",
+        "iso",
+        "utc",
+        "date"
       ],
       "order": 1
     }

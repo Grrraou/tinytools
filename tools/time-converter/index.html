@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time converter</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, select { -webkit-user-select: text; user-select: text; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; }
+    input[type="text"], input[type="number"] { font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; width: 100%; max-width: 24rem; }
+    button { font: inherit; padding: 0.5rem 1rem; margin: 0.25rem 0.25rem 0 0; cursor: pointer; }
+    select { font: inherit; padding: 0.5rem; min-width: 12rem; }
+    .row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .canonical { font-family: ui-monospace, monospace; font-size: 0.85rem; margin-bottom: 1rem; }
+    .canonical div { margin: 0.25rem 0; }
+    .canonical kbd { background: #f0f0f0; padding: 0.1rem 0.35rem; border-radius: 3px; }
+    .tz-wrap { max-height: 60vh; overflow: auto; border: 1px solid #eee; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #eee; }
+    thead th { position: sticky; top: 0; background: #fff; z-index: 1; box-shadow: 0 1px 0 #eee; }
+    th { font-weight: 600; color: #555; }
+    tr.tz-row-local td { background: #e8f0fe; font-weight: 600; font-size: 1rem; padding: 0.5rem 0.6rem; border-bottom-color: #b0c4e8; }
+    tr.tz-row-local td:first-child { color: #1a73e8; }
+    .error { color: #c00; }
+    .tz-note { margin-top: 0.75rem; padding: 0.6rem 0.75rem; background: #f5f5f5; border-radius: 6px; font-size: 0.85rem; color: #555; }
+    .helper { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
+    .helper h3 { margin: 0 0 0.75rem; font-size: 1rem; color: #333; }
+    .helper h4 { margin: 1rem 0 0.35rem; font-size: 0.9rem; color: #555; }
+    .helper h4:first-of-type { margin-top: 0; }
+    .helper p, .helper ul { margin: 0 0 0.5rem; font-size: 0.85rem; color: #555; line-height: 1.5; }
+    .helper ul { padding-left: 1.25rem; }
+    .helper code { background: #f0f0f0; padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.8em; }
+    .tz-row-label { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; }
+    .tz-filter { width: 10rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; color: #333; }
+    .tz-filter::placeholder { color: #999; }
+    .tz-filter:focus { outline: none; border-color: #999; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <label for="input">Timestamp or date</label>
+    <input type="text" id="input" placeholder="Unix seconds, Unix ms, or ISO 8601 (e.g. 1707350400 or 2024-02-08T12:00:00Z)" />
+  </div>
+  <button type="button" id="now">Now</button>
+  <button type="button" id="convert">Convert</button>
+  <button type="button" id="clear">Clear</button>
+
+  <div id="result" style="display: none;">
+    <div class="row">
+      <label>This moment</label>
+      <div class="canonical" id="canonical"></div>
+    </div>
+    <div class="row">
+      <div class="tz-row-label">
+        <label for="tzFilter">In time zones</label>
+        <input type="text" id="tzFilter" class="tz-filter" placeholder="Filter zones…" aria-label="Filter time zones" autocomplete="off" />
+      </div>
+      <div class="tz-wrap">
+        <table>
+          <thead>
+            <tr><th>Time zone</th><th>Designation</th><th>Local date & time</th><th>Offset (GMT / UTC)</th></tr>
+          </thead>
+          <tbody id="tzTable"></tbody>
+        </table>
+      </div>
+      <p class="tz-note" id="tzNote"></p>
+    </div>
+  </div>
+  <div id="error" class="row error" style="display: none;"></div>
+
+  <section class="helper row" aria-label="Time standards and abbreviations">
+    <h3>Time standards &amp; abbreviations</h3>
+
+    <h4>GMT (Greenwich Mean Time)</h4>
+    <p>Mean solar time at the Royal Observatory in Greenwich, London (longitude 0°). Historically the world’s reference; clocks were set by the sun at Greenwich. <strong>Usage:</strong> Still widely used in the UK and in casual speech (“GMT+1”). For technical use, UTC is preferred because it is defined by atomic time and leap seconds.</p>
+
+    <h4>UTC (Coordinated Universal Time)</h4>
+    <p>Primary time standard: based on atomic clocks, with leap seconds added occasionally to stay aligned with Earth’s rotation. <strong>Usage:</strong> Reference for aviation, computing, and science. Unix timestamps and ISO 8601 (e.g. <code>2024-02-08T12:00:00Z</code>) are in UTC. For practical purposes, UTC and GMT are the same (same offset); “Z” in ISO dates means UTC.</p>
+
+    <h4>Designation abbreviations (by region)</h4>
+    <p>These appear in the <strong>Designation</strong> column when a zone has a named time (standard or daylight).</p>
+    <ul>
+      <li><strong>Europe:</strong> <code>CET</code> Central European Time (e.g. GMT+1), <code>CEST</code> Central European Summer Time (GMT+2). <code>GMT</code>/<code>BST</code> (UK), <code>WET</code>/<code>WEST</code> (Western Europe), <code>EET</code>/<code>EEST</code> (Eastern Europe).</li>
+      <li><strong>Americas:</strong> <code>EST</code>/<code>EDT</code> (Eastern), <code>CST</code>/<code>CDT</code> (Central), <code>MST</code>/<code>MDT</code> (Mountain), <code>PST</code>/<code>PDT</code> (Pacific). <code>AST</code> Atlantic Standard Time; <code>BRT</code> Brasília Time.</li>
+      <li><strong>Asia/Pacific:</strong> <code>IST</code> (India Standard, GMT+5:30), <code>JST</code> (Japan), <code>CST</code> (China, GMT+8), <code>AEST</code>/<code>AEDT</code> (Australia East).</li>
+    </ul>
+    <p><strong>Usage:</strong> Abbreviations help when scheduling across regions (e.g. “Call at 15:00 CET”). The same abbreviation can mean different things (e.g. CST = Central US or China); the IANA zone (e.g. America/Chicago) is unambiguous.</p>
+  </section>
+
+  <script>
+    (function () {
+      var input = document.getElementById('input');
+      var result = document.getElementById('result');
+      var errorEl = document.getElementById('error');
+      var canonicalEl = document.getElementById('canonical');
+      var tzTable = document.getElementById('tzTable');
+      var tzNoteEl = document.getElementById('tzNote');
+      var tzFilter = document.getElementById('tzFilter');
+
+      function getBrowserTimeZoneName() {
+        try {
+          return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local';
+        } catch (e) {
+          return 'Local';
+        }
+      }
+
+      var allTimeZones = typeof Intl !== 'undefined' && Intl.supportedValuesOf
+        ? Intl.supportedValuesOf('timeZone')
+        : [
+            'UTC', 'America/New_York', 'America/Los_Angeles', 'America/Chicago', 'America/Denver',
+            'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Amsterdam', 'Asia/Tokyo',
+            'Asia/Shanghai', 'Asia/Singapore', 'Asia/Dubai', 'Australia/Sydney', 'Pacific/Auckland'
+          ];
+
+      function parseInput(s) {
+        s = (s || '').trim();
+        if (s === '') return new Date();
+        var n = Number(s);
+        if (!isNaN(n)) {
+          if (n < 1e12) n *= 1000;
+          return new Date(n);
+        }
+        var d = new Date(s);
+        if (isNaN(d.getTime())) return null;
+        return d;
+      }
+
+      var formatOpts = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      };
+
+      function formatInZone(date, tz) {
+        if (tz === 'Local') {
+          return date.toLocaleString(undefined, formatOpts);
+        }
+        try {
+          return date.toLocaleString('en-GB', {
+            timeZone: tz,
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          });
+        } catch (e) {
+          return '—';
+        }
+      }
+
+      function formatOffsetGmtUtc(minutesOffset) {
+        var o = minutesOffset;
+        var sign = o >= 0 ? '+' : '-';
+        var h = Math.floor(Math.abs(o) / 60);
+        var m = Math.abs(o) % 60;
+        var gmt = 'GMT' + sign + h + (m ? ':' + (m < 10 ? '0' : '') + m : '');
+        var utc = 'UTC' + sign + h + (m ? ':' + (m < 10 ? '0' : '') + m : '');
+        return gmt + ' / ' + utc;
+      }
+
+      function getDesignation(date, tz) {
+        try {
+          var opts = { timeZoneName: 'short' };
+          if (tz !== 'Local') opts.timeZone = tz;
+          var parts = new Intl.DateTimeFormat('en-CA', opts).formatToParts(date);
+          var p = parts.find(function (x) { return x.type === 'timeZoneName'; });
+          return p ? p.value : '—';
+        } catch (e) {
+          return '—';
+        }
+      }
+
+      function getOffset(date, tz) {
+        if (tz === 'Local') {
+          return formatOffsetGmtUtc(-date.getTimezoneOffset());
+        }
+        try {
+          var parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: tz,
+            timeZoneName: 'longOffset'
+          }).formatToParts(date);
+          var tzPart = parts.find(function (p) { return p.type === 'timeZoneName'; });
+          if (!tzPart) return '—';
+          var v = tzPart.value;
+          var match = v.match(/^(GMT|UTC)([+\u2212-])(\d{1,2})(?::(\d{2}))?$/);
+          if (match) {
+            var sign = match[2] === '\u2212' ? '-' : match[2];
+            var h = parseInt(match[3], 10);
+            var m = match[4] ? parseInt(match[4], 10) : 0;
+            var mins = (sign === '+' ? 1 : -1) * (h * 60 + m);
+            return formatOffsetGmtUtc(mins);
+          }
+          return v.replace(/^UTC/, 'GMT') + ' / ' + v.replace(/^GMT/, 'UTC');
+        } catch (e) {
+          return '—';
+        }
+      }
+
+      function labelForTz(tz) {
+        if (tz === 'Local') {
+          var name = getBrowserTimeZoneName();
+          return name !== 'Local' ? name + ' (your browser)' : 'Local (your browser)';
+        }
+        return tz.replace(/_/g, ' ');
+      }
+
+      function renderRow(tz, date) {
+        var tr = document.createElement('tr');
+        if (tz === 'Local') tr.className = 'tz-row-local';
+        tr.innerHTML =
+          '<td>' + labelForTz(tz) + '</td>' +
+          '<td>' + getDesignation(date, tz) + '</td>' +
+          '<td>' + formatInZone(date, tz) + '</td>' +
+          '<td>' + getOffset(date, tz) + '</td>';
+        return tr;
+      }
+
+      function render(date) {
+        var unixS = Math.floor(date.getTime() / 1000);
+        var unixMs = date.getTime();
+        var iso = date.toISOString();
+        canonicalEl.innerHTML =
+          '<div><kbd>Unix (s)</kbd> ' + unixS + '</div>' +
+          '<div><kbd>Unix (ms)</kbd> ' + unixMs + '</div>' +
+          '<div><kbd>ISO 8601 (UTC)</kbd> ' + iso + '</div>';
+
+        var browserTz = getBrowserTimeZoneName();
+        var tzList = ['UTC', 'Local'].concat(
+          allTimeZones.filter(function (tz) { return tz !== 'UTC' && tz !== browserTz; }).sort()
+        );
+
+        tzTable.innerHTML = '';
+        tzList.forEach(function (tz) {
+          tzTable.appendChild(renderRow(tz, date));
+        });
+        applyTzFilter();
+
+        var tzName = browserTz;
+        tzNoteEl.innerHTML = 'Your offset (e.g. GMT+2 in France) changes with daylight saving time: in winter your zone uses standard time (e.g. GMT+1 for Europe/Paris), in summer it uses summer time (e.g. GMT+2). So you see GMT+2 in France when it\'s summer time (CEST). ' +
+          'The <strong>Designation</strong> column shows each zone\'s current name when it has one (e.g. CET/CEST in Europe, EST/EDT in US East, AEST/AEDT in Australia); otherwise the offset is shown (e.g. GMT+5:30).';
+      }
+
+      function run() {
+        errorEl.style.display = 'none';
+        var date = parseInput(input.value);
+        if (!date) {
+          errorEl.textContent = 'Could not parse that as a timestamp or date. Use Unix seconds, Unix ms, or an ISO 8601 string.';
+          errorEl.style.display = 'block';
+          result.style.display = 'none';
+          return;
+        }
+        result.style.display = 'block';
+        render(date);
+      }
+
+      document.getElementById('now').onclick = function () {
+        input.value = String(Date.now());
+        run();
+      };
+
+      document.getElementById('convert').onclick = run;
+
+      document.getElementById('clear').onclick = function () {
+        input.value = '';
+        if (tzFilter) tzFilter.value = '';
+        result.style.display = 'none';
+        errorEl.style.display = 'none';
+      };
+
+      function applyTzFilter() {
+        var q = (tzFilter && tzFilter.value || '').trim().toLowerCase();
+        var rows = tzTable.querySelectorAll('tr');
+        for (var i = 0; i < rows.length; i++) {
+          var tr = rows[i];
+          if (i < 2) {
+            tr.style.display = '';
+            continue;
+          }
+          var zone = (tr.cells[0] && tr.cells[0].textContent) || '';
+          var designation = (tr.cells[1] && tr.cells[1].textContent) || '';
+          var match = !q || zone.toLowerCase().indexOf(q) !== -1 || designation.toLowerCase().indexOf(q) !== -1;
+          tr.style.display = match ? '' : 'none';
+        }
+      }
+
+      if (tzFilter) {
+        tzFilter.addEventListener('input', applyTzFilter);
+      }
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') run();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -60,7 +60,10 @@ function selectCategory(cat) {
 <template>
   <div class="app">
     <header class="header">
-      <a href="#" class="logo" @click.prevent="clearSelection">Helpers</a>
+      <a href="#" class="logo" @click.prevent="clearSelection">
+        <img src="/img/logo.png" alt="" class="logo-img" />
+        <span>Helpers</span>
+      </a>
       <p class="tagline">Dev tools — encoding, hashing, text &amp; more</p>
     </header>
 
@@ -145,6 +148,9 @@ body {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 600;
   font-size: 1.25rem;
   color: var(--text);
@@ -153,6 +159,12 @@ body {
 
 .logo:hover {
   color: var(--accent);
+}
+
+.logo-img {
+  height: 1.75rem;
+  width: auto;
+  vertical-align: middle;
 }
 
 .tagline {
