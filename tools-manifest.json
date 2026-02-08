@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-08T17:40:30.347Z",
+  "generatedAt": "2026-02-08T20:49:47.157Z",
   "categories": [
     "Text",
     "Encoding",
@@ -134,6 +134,21 @@
         "convert"
       ],
       "order": 2
+    },
+    {
+      "id": "cron-parser",
+      "path": "tools/cron-parser/",
+      "name": "Cron parser",
+      "category": "Other",
+      "description": "Input cron expression, show next 5 run times in local time",
+      "keywords": [
+        "cron",
+        "schedule",
+        "next run",
+        "crontab",
+        "cron expression"
+      ],
+      "order": 3
     }
   ]
 }
