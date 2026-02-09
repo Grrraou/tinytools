@@ -1,0 +1,27 @@
+# Build stage: same as main Dockerfile (manifest + frontend + copy tools into dist)
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json ./
+COPY scripts/ ./scripts/
+COPY tools/ ./tools/
+COPY frontend/ ./frontend/
+
+RUN node scripts/generate-manifest.js
+
+WORKDIR /app/frontend
+RUN npm install && npm run build
+
+WORKDIR /app
+RUN node scripts/copy-tools-to-dist.js
+
+# Run stage: Apache httpd serving static frontend/dist
+FROM httpd:alpine
+
+COPY --from=builder /app/frontend/dist /usr/local/apache2/htdocs/
+COPY docker/apache-app.conf /usr/local/apache2/conf/conf.d/app.conf
+
+EXPOSE 80
+
+# No CMD needed: httpd image default is to run Apache

@@ -1,5 +1,5 @@
 /**
- * Minimal secure backend for Helpers.
+ * Minimal secure backend for TinyTools.
  * Serves static manifest + tool files. No user input is executed; tools run in iframe sandbox.
  */
 
@@ -77,5 +77,5 @@ app.get('*', (req, res) => {
 
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
-  console.log(`Helpers server http://localhost:${PORT}`);
+  console.log(`TinyTools server http://localhost:${PORT}`);
 });

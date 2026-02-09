@@ -1,0 +1,13 @@
+# Apache2 variant. Build and run:
+#   docker compose -f docker-compose.apache.yml up -d --build
+# App on http://localhost:<PORT> (default 3000). Set PORT in .env to avoid clashes with other sites.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.apache
+    container_name: ${CONTAINER_NAME:-tinytools-app}
+    ports:
+      - "${PORT:-3000}:80"
+    restart: unless-stopped

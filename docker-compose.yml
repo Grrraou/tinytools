@@ -1,0 +1,12 @@
+# Run: copy env.example to .env, set PORT if needed, then:
+#   docker compose up -d --build
+# App will be on http://localhost:<PORT> (default 3000).
+# Use a different PORT when other Dockerized sites already use 3000.
+
+services:
+  app:
+    build: .
+    container_name: ${CONTAINER_NAME:-tinytools-app}
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped

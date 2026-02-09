@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T22:09:57.864Z",
+  "generatedAt": "2026-02-09T22:19:26.919Z",
   "categories": [
     "Text",
     "Encoding",
@@ -501,6 +501,29 @@
       ],
       "order": 9,
       "icon": "∠"
+    },
+    {
+      "id": "speed-converter",
+      "path": "tools/speed-converter/",
+      "name": "Speed converter",
+      "category": "Units & Numbers",
+      "categories": [
+        "Units & Numbers"
+      ],
+      "description": "Convert between metric, imperial and nautical speed units. m/s, km/h, mph, knots, ft/s, Mach and more, with explanations.",
+      "keywords": [
+        "speed",
+        "velocity",
+        "mph",
+        "km/h",
+        "m/s",
+        "knots",
+        "nautical",
+        "Mach",
+        "convert"
+      ],
+      "order": 10,
+      "icon": "⚡"
     },
     {
       "id": "percentage-calculator",

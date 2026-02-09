@@ -1,14 +1,14 @@
-# Helpers
+# TinyTools
 
-A **front-first** dev tools collection (Unicode search, Base64, HTML encode/decode, and more) with a single UI. Add new tools by adding a folder under `tools/` — no app code changes required.
+A **single-page collection of small, focused tools** — unit converters (temperature, distance, speed, angles, CSS), text and encoding (Base64, URL, case, regex), time and date, finance, reference (Unicode, ports, HTTP status codes), and more. One UI, no sign-up, no tracking. Add new tools by adding a folder under `tools/`; no app code changes required.
 
 ## Features
 
-- **URL paths** — Each tool has a direct URL: `/t/<slug>` (e.g. `/t/unicode-search`, `/t/time-converter`). Query parameters are passed into the tool iframe so you can link to results or filters (e.g. `/t/time-converter?ts=1707350400`). Helps with indexing and shareable links.
+- **URL paths** — Each tool has a direct URL: `/t/<slug>` (e.g. `/t/unicode-search`, `/t/time-converter`). Query parameters are passed into the tool iframe so you can link to results or filters (e.g. `/t/time-converter?ts=1707350400`). Shareable and indexable.
 - **Search & categories** — Find tools by name, description, or keywords; filter by category.
 - **Tool discovery** — Each tool is a folder with `index.html` and optional `meta.json`. Run `npm run generate-manifest` and it appears in the UI.
 - **Secure** — Tools run in sandboxed iframes; backend only serves static files and manifest; strict CSP and path validation.
-- **Backend only when needed** — You can serve the built frontend + tools as static files (no Node). Use the small Node server for dev or when you prefer one process.
+- **Backend optional** — You can serve the built frontend + tools as static files (no Node). Use the small Node server for dev or when you prefer one process.
 
 ## Quick start
 
@@ -37,16 +37,41 @@ Then open **http://localhost:3000**.
 
 ### Docker
 
+**Port and container name** — On a server that already runs other Dockerized sites, set the host port and container name via a `.env` file so this app doesn’t clash:
+
 ```bash
-make docker-build   # build image
-make docker-run     # run container on port 3000 → http://localhost:3000
-make docker-stop   # stop container
-make docker-logs   # tail logs
+cp env.example .env
+# Edit .env: e.g. PORT=3001 and CONTAINER_NAME=tinytools-app
 ```
+
+- **Make (Node image):** `make build` then `make dev` — app at `http://localhost:<PORT>` (default 3000).
+- **Make (Apache2 image):** `make build-apache` then `make dev-apache` — same port mapping; container listens on 80.
+- **Docker Compose:** `docker compose up -d --build` — reads `PORT` and `CONTAINER_NAME` from `.env`.
+- **Apache via Compose:** `docker compose -f docker-compose.apache.yml up -d --build`.
+
+Stop/remove: `make down` (or `docker compose down`).
 
 ### Makefile
 
-Run `make help` for all targets. Common: `make build`, `make run`, `make dev`, `make generate-manifest`, `make docker-build`, `make docker-run`, `make clean`.
+Common: `make build`, `make dev`, `make down`, `make build-apache`, `make dev-apache`, `make generate-manifest`, `make delete`.
+
+## Renaming the repository
+
+If the repo is currently named something else (e.g. `helpers`) and you want to rename it to **TinyTools** (or `tinytools` / `tiny-tools`):
+
+1. **On GitHub:** Repository → **Settings** → **General** → **Repository name** → change to `tinytools` (or your choice) → **Rename**.
+2. **On GitLab:** Project → **Settings** → **General** → **Project name** and **Project URL** (path) → save.
+3. **Update your local clone:**
+   ```bash
+   git remote set-url origin https://github.com/YOUR_USER/tinytools.git
+   # or the new URL from your host
+   ```
+   If you prefer a fresh clone:
+   ```bash
+   git clone https://github.com/YOUR_USER/tinytools.git
+   cd tinytools
+   ```
+4. The app name (TinyTools), package names (`tinytools`, `tinytools-frontend`, `tinytools-backend`), and Docker default container name (`tinytools-app`) are already set in this project. The **folder name** on disk can stay as-is (e.g. `helpers`); only the remote URL and optional clone path change when you rename the repo.
 
 ## Adding a new tool
 
@@ -60,20 +85,20 @@ Run `make help` for all targets. Common: `make build`, `make run`, `make dev`, `
 {
   "name": "URL Encode / Decode",
   "description": "Encode or decode URL components",
-  "category": "Web",
+  "category": "Web & APIs",
   "keywords": ["url", "encode", "percent"],
   "order": 2
 }
 ```
 
-**Categories** (order in sidebar): `Text`, `Encoding`, `Cryptography`, `Web & APIs`, `CSS & Design`, `Units & Numbers`, `Time & Date`, `Reference`, `Other`. Use `category` or `categories` (array) in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
+**Categories** (order in sidebar): `Text`, `Encoding`, `Cryptography`, `Web & APIs`, `CSS & Design`, `Units & Numbers`, `Finance`, `Time & Date`, `Reference`, `Other`. Use `category` or `categories` (array) in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
 
 **Tool rules:**
 
 - One main file: `index.html`. No path traversal; backend only serves `index.html` under each tool slug.
 - Tools run in an iframe with `sandbox="allow-scripts allow-same-origin"`. Prefer client-side logic so you don’t need the backend.
 - Keep tools self-contained (inline or same-origin scripts only) so they work with the default CSP.
-- **URL parameters (norm for all tools):** (1) **Read on load** — Use `URLSearchParams(window.location.search)` to restore state (filters, input, mode) so direct links work. (2) **Sync URL on change** — When the user changes state (search, category, encode/decode, etc.), tell the shell to update the address bar so the link stays shareable: `if (window.parent !== window) window.parent.postMessage({ type: 'helpers-set-query', query: { param: value, ... } }, location.origin);` The shell will not reload the iframe. Param names are tool-specific; keep them short and document below.
+- **URL parameters (norm for all tools):** (1) **Read on load** — Use `URLSearchParams(window.location.search)` to restore state (filters, input, mode) so direct links work. (2) **Sync URL on change** — When the user changes state, tell the shell to update the address bar so the link stays shareable: `if (window.parent !== window) window.parent.postMessage({ type: 'helpers-set-query', query: { param: value, ... } }, location.origin);` The shell will not reload the iframe. Param names are tool-specific; keep them short and document below.
 
 **URL params by tool:**
 
@@ -87,7 +112,7 @@ Run `make help` for all targets. Common: `make build`, `make run`, `make dev`, `
 ## Project layout
 
 ```
-helpers/
+<repo root>/
   frontend/          # Vue 3 + Vite app (shell: search, categories, iframe)
   backend/           # Minimal Express server (static + /tools + manifest)
   tools/             # One folder per tool (index.html + optional meta.json)
@@ -98,7 +123,7 @@ helpers/
 
 ## Static-only deployment
 
-After `npm run build`, `frontend/dist/` contains the app, `tools-manifest.json`, and `tools/**`. Serve `frontend/dist` with any static host (e.g. nginx, Vercel, Netlify). No Node backend required.
+After `npm run build`, `frontend/dist/` contains the app, `tools-manifest.json`, and `tools/**`. Serve `frontend/dist` with any static host (e.g. nginx, Apache, Vercel, Netlify). No Node backend required. For Apache in Docker with a configurable port, use `Dockerfile.apache` and set `PORT` in `.env`.
 
 ## Security
 

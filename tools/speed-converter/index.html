@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speed converter</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, select { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem 0; color: #333; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .row { margin-bottom: 1rem; }
+    input[type="text"], select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+    input:focus, select:focus { outline: none; border-color: #1a73e8; }
+    .input-row { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .input-row input { width: 10rem; font-family: ui-monospace, monospace; }
+    .output-section { margin-top: 1.25rem; }
+    .output-group { margin-bottom: 1rem; }
+    .output-group h3 { font-size: 0.8rem; text-transform: uppercase; color: #666; margin: 0 0 0.5rem 0; }
+    .output-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+    .output-item { background: #f5f5f5; border-radius: 6px; padding: 0.5rem 0.65rem; }
+    .output-item .unit { font-size: 0.75rem; color: #666; }
+    .output-item .value { font-family: ui-monospace, monospace; font-size: 0.95rem; word-break: break-all; }
+    .output-item .value.empty { color: #999; }
+    .output-item .value.error { color: #c00; }
+    .explain { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0; }
+    .explain h2 { margin-top: 0; }
+    .explain-block { background: #f8f9fa; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; font-size: 0.9rem; line-height: 1.5; }
+    .explain-block h4 { margin: 0 0 0.35rem 0; font-size: 0.9rem; }
+    .explain-block p { margin: 0; color: #444; }
+    .explain-block p + p { margin-top: 0.35rem; }
+    .explain-table { width: 100%; max-width: 42rem; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.5rem; }
+    .explain-table th, .explain-table td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #eee; vertical-align: top; }
+    .explain-table th { color: #666; font-weight: 600; }
+    .explain-table .unit-name { font-family: ui-monospace, monospace; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <h1>Speed converter</h1>
+  <p style="margin: 0 0 1rem 0; font-size: 0.9rem; color: #555;">Convert between metric, imperial, and nautical speed units.</p>
+  <div class="row">
+    <label for="input">Speed</label>
+    <div class="input-row">
+      <input type="text" id="input" placeholder="e.g. 100 or 1.5e3" inputmode="decimal" autocomplete="off" />
+      <select id="fromUnit"></select>
+    </div>
+  </div>
+
+  <div class="output-section" id="outputSection"></div>
+
+  <section class="explain" id="explainSection">
+    <h2>About these units</h2>
+
+    <div class="explain-block">
+      <h4>Metric (SI and common)</h4>
+      <p><strong>Metres per second (m/s)</strong> is the SI unit of speed. <strong>Kilometres per hour (km/h)</strong> is used for road speeds in most of the world and in weather (wind). <strong>Kilometres per second (km/s)</strong> appears in astronomy and ballistics. Millimetres and centimetres per second are used for slow flows (e.g. glaciers, conveyor belts).</p>
+    </div>
+
+    <div class="explain-block">
+      <h4>Imperial and US customary</h4>
+      <p><strong>Miles per hour (mph)</strong> is used for road speeds in the US and UK. <strong>Feet per second (ft/s)</strong> is common in ballistics and some engineering. <strong>Knots (kn)</strong> are nautical miles per hour (1 nmi = 1,852 m); used in aviation, maritime, and weather (wind and vessels).</p>
+    </div>
+
+    <div class="explain-block">
+      <h4>Mach number</h4>
+      <p><strong>Mach 1</strong> is the speed of sound in the medium (e.g. air). It depends on temperature and pressure; here we use a typical value at sea level in dry air at about 15 °C (~340 m/s). At higher altitude or different conditions, Mach 1 is a different speed in m/s.</p>
+    </div>
+
+    <div class="explain-block">
+      <h4>Unit reference</h4>
+      <table class="explain-table" id="explainTable"></table>
+    </div>
+  </section>
+
+  <script>
+(function () {
+  var MPS_KMH = 1000 / 3600;       // 1 km/h in m/s
+  var MPS_MPH = 1609.344 / 3600;  // 1 mph in m/s
+  var MPS_KNOT = 1852 / 3600;     // 1 knot in m/s
+  var MPS_FPS = 0.3048;           // 1 ft/s in m/s
+  var MACH_MPS = 340.29;          // Mach 1 in m/s (sea level, ~15°C, dry air)
+
+  var UNITS = [
+    { id: 'mm/s', label: 'mm/s', mps: 0.001, group: 'metric', name: 'Millimetre per second', explain: '10⁻³ m/s. Slow flows, creep, some engineering.' },
+    { id: 'cm/s', label: 'cm/s', mps: 0.01, group: 'metric', name: 'Centimetre per second', explain: '10⁻² m/s. Glaciers, conveyor belts, slow fluid flow.' },
+    { id: 'm/s', label: 'm/s', mps: 1, group: 'metric', name: 'Metre per second', explain: 'SI unit of speed. Physics, sport, wind speed in science.' },
+    { id: 'km/h', label: 'km/h', mps: MPS_KMH, group: 'metric', name: 'Kilometre per hour', explain: 'Road speeds and wind in most countries. 1 km/h = 1/3.6 m/s.' },
+    { id: 'km/s', label: 'km/s', mps: 1000, group: 'metric', name: 'Kilometre per second', explain: 'High speeds: bullets, spacecraft, astronomy.' },
+
+    { id: 'ft/s', label: 'ft/s', mps: MPS_FPS, group: 'imperial', name: 'Foot per second', explain: '0.3048 m/s. Ballistics, some US engineering.' },
+    { id: 'mph', label: 'mph', mps: MPS_MPH, group: 'imperial', name: 'Mile per hour', explain: 'Road speeds in US and UK. 1 mph ≈ 0.447 m/s.' },
+    { id: 'kn', label: 'knots (kn)', mps: MPS_KNOT, group: 'imperial', name: 'Knot', explain: 'Nautical mile per hour (1,852 m/h). Aviation, maritime, wind.' },
+
+    { id: 'Mach', label: 'Mach', mps: MACH_MPS, group: 'other', name: 'Mach number', explain: 'Speed of sound in air (here ~340 m/s at sea level). Varies with temperature and pressure.' }
+  ];
+
+  var GROUPS = [
+    { id: 'metric', title: 'Metric' },
+    { id: 'imperial', title: 'Imperial / nautical' },
+    { id: 'other', title: 'Other' }
+  ];
+
+  var inputEl = document.getElementById('input');
+  var fromUnitSelect = document.getElementById('fromUnit');
+  var outputSection = document.getElementById('outputSection');
+  var explainTable = document.getElementById('explainTable');
+
+  function initUnits() {
+    UNITS.forEach(function (u) {
+      var opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = u.label;
+      if (u.id === 'km/h') opt.selected = true;
+      fromUnitSelect.appendChild(opt);
+    });
+  }
+
+  function formatNum(n) {
+    if (n === 0) return '0';
+    if (isNaN(n) || !isFinite(n)) return '—';
+    if (n >= 1e15 || (n < 1e-10 && n > 0)) return n.toExponential(4);
+    if (n >= 1e6 || (n < 0.0001 && n > 0)) return n.toLocaleString('en', { maximumFractionDigits: 4 });
+    if (Math.abs(n) >= 1 && Math.abs(n) < 1e6 && Number.isInteger(n)) return String(n);
+    var s = n.toFixed(6).replace(/\.?0+$/, '');
+    return s;
+  }
+
+  function update() {
+    var fromId = fromUnitSelect.value;
+    var fromUnit = UNITS.find(function (u) { return u.id === fromId; });
+    if (!fromUnit) return;
+
+    var raw = (inputEl.value || '').trim();
+    var num = raw === '' ? null : parseFloat(raw);
+    if (num !== null && (isNaN(num) || num < 0)) num = null;
+
+    var mps = (num !== null && num >= 0) ? num * fromUnit.mps : null;
+
+    outputSection.innerHTML = '';
+    GROUPS.forEach(function (grp) {
+      var unitsInGroup = UNITS.filter(function (u) { return u.group === grp.id; });
+      var div = document.createElement('div');
+      div.className = 'output-group';
+      var h3 = document.createElement('h3');
+      h3.textContent = grp.title;
+      div.appendChild(h3);
+      var grid = document.createElement('div');
+      grid.className = 'output-grid';
+      unitsInGroup.forEach(function (u) {
+        var item = document.createElement('div');
+        item.className = 'output-item';
+        var unitSpan = document.createElement('div');
+        unitSpan.className = 'unit';
+        unitSpan.textContent = u.label;
+        var valueSpan = document.createElement('div');
+        valueSpan.className = 'value' + (mps === null ? ' empty' : '');
+        if (mps === null) {
+          valueSpan.textContent = raw ? 'Invalid' : '—';
+          if (raw) valueSpan.classList.add('error');
+        } else {
+          var val = mps / u.mps;
+          valueSpan.textContent = formatNum(val);
+        }
+        item.appendChild(unitSpan);
+        item.appendChild(valueSpan);
+        grid.appendChild(item);
+      });
+      div.appendChild(grid);
+      outputSection.appendChild(div);
+    });
+  }
+
+  function buildExplainTable() {
+    var html = '';
+    UNITS.forEach(function (u) {
+      html += '<tr><td class="unit-name">' + u.id + '</td><td>' + u.name + '</td><td>' + u.explain + '</td></tr>';
+    });
+    explainTable.innerHTML = html;
+  }
+
+  inputEl.addEventListener('input', update);
+  fromUnitSelect.addEventListener('change', update);
+
+  initUnits();
+  buildExplainTable();
+  update();
+})();
+  </script>
+</body>
+</html>

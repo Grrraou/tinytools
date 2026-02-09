@@ -1,8 +1,8 @@
 {
-  "name": "helpers",
+  "name": "tinytools",
   "private": true,
   "version": "1.0.0",
-  "description": "Dev tools collection — unicode, base64, HTML encode/decode and more",
+  "description": "Small, focused tools in one place — converters, text, time, finance, encoding, reference and more",
   "scripts": {
     "generate-manifest": "node scripts/generate-manifest.js",
     "build": "npm run generate-manifest && cd frontend && npm install && npm run build && cd .. && node scripts/copy-tools-to-dist.js",

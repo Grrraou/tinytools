@@ -366,9 +366,9 @@ function toolIcon(slug) {
       <div class="header-top">
         <router-link to="/" class="logo">
           <img src="/img/logo.png" alt="" class="logo-img" />
-          <span>Helpers</span>
+          <span>TinyTools</span>
         </router-link>
-        <p class="tagline">Dev tools — encoding, hashing, text &amp; more</p>
+        <p class="tagline">Converters, text, time, encoding &amp; more — one place</p>
       </div>
       <div class="favorites-row">
         <span class="favorites-label">Favorites</span>
@@ -500,15 +500,15 @@ function toolIcon(slug) {
           @content-sent="pendingConverterContent = null"
         />
         <div v-else class="landing">
-          <h2 class="landing-title">Helpers</h2>
-          <p class="landing-lead">A collection of small, focused dev tools — encoding, converters, text utilities, and reference — in one place. No sign-up, no tracking. Each tool has a direct URL so you can bookmark or share it.</p>
+          <h2 class="landing-title">TinyTools</h2>
+          <p class="landing-lead">A collection of small, focused tools — converters (units, time, temperature, speed, finance), text and encoding utilities, reference (Unicode, ports, regex), and more. No sign-up, no tracking. Each tool has a direct URL so you can bookmark or share it.</p>
           <ul class="landing-features">
             <li><strong>Shareable links</strong> — Every tool lives at <code>/t/<em>slug</em></code>; query params are preserved so you can link to a specific state (e.g. a timestamp or encode result).</li>
-            <li><strong>Search & categories</strong> — Find tools by name, description, or keywords; filter by category. A tool can appear in multiple categories.</li>
+            <li><strong>Search & categories</strong> — Find tools by name, description, or keywords; filter by category.</li>
             <li><strong>Sandboxed</strong> — Tools run in iframes with a strict sandbox; the shell only serves static files and the manifest.</li>
             <li><strong>Easy to extend</strong> — Add a folder under <code>tools/</code> with <code>index.html</code> and <code>meta.json</code>, run <code>generate-manifest</code>, and the tool shows up in the list.</li>
           </ul>
-          <p class="landing-cta">Choose a tool from the sidebar or use search to get started.</p>
+          <p class="landing-cta">Pick a tool from the sidebar or search to get started.</p>
         </div>
       </section>
     </main>
