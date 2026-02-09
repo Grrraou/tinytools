@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Byte converter</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, select { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem 0; color: #333; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .row { margin-bottom: 1rem; }
+    input[type="text"], input[type="number"], select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+    input:focus, select:focus { outline: none; border-color: #1a73e8; }
+    .input-row { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .input-row input { width: 10rem; font-family: ui-monospace, monospace; }
+    .output-section { margin-top: 1.25rem; }
+    .output-group { margin-bottom: 1rem; }
+    .output-group h3 { font-size: 0.8rem; text-transform: uppercase; color: #666; margin: 0 0 0.5rem 0; }
+    .output-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+    .output-item { background: #f5f5f5; border-radius: 6px; padding: 0.5rem 0.65rem; }
+    .output-item .unit { font-size: 0.75rem; color: #666; }
+    .output-item .value { font-family: ui-monospace, monospace; font-size: 0.95rem; word-break: break-all; }
+    .output-item .value.empty { color: #999; }
+    .explain { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0; }
+    .explain h2 { margin-top: 0; }
+    .explain-block { background: #f8f9fa; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; font-size: 0.9rem; line-height: 1.5; }
+    .explain-block h4 { margin: 0 0 0.35rem 0; font-size: 0.9rem; }
+    .explain-block p { margin: 0; color: #444; }
+    .explain-table { width: 100%; max-width: 36rem; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.5rem; }
+    .explain-table th, .explain-table td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #eee; vertical-align: top; }
+    .explain-table th { color: #666; font-weight: 600; }
+    .explain-table .unit-name { font-family: ui-monospace, monospace; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <h1>Byte converter</h1>
+  <p style="margin: 0 0 1rem 0; font-size: 0.9rem; color: #555;">Convert between bytes, kilobytes, megabytes, bits, and more. Decimal (SI) vs binary (IEC) units.</p>
+  <div class="row">
+    <label for="input">Amount</label>
+    <div class="input-row">
+      <input type="text" id="input" placeholder="e.g. 1024" inputmode="decimal" autocomplete="off" />
+      <select id="fromUnit"></select>
+    </div>
+  </div>
+
+  <div class="output-section" id="outputSection"></div>
+
+  <section class="explain" id="explainSection">
+    <h2>About these units</h2>
+
+    <div class="explain-block">
+      <h4>Bits vs Bytes</h4>
+      <p><strong>Bit (b)</strong> is the smallest unit: one 0 or 1. <strong>Byte (B)</strong> = 8 bits. One byte can represent one character (e.g. in ASCII). File sizes and storage are usually given in <strong>bytes</strong> (B, KB, MB). Network and link speeds are often given in <strong>bits per second</strong> (Mbps, Gbps) — so “100 Mbps” means 100 megabit/s, i.e. 12.5 MB/s.</p>
+    </div>
+
+    <div class="explain-block">
+      <h4>Octets vs Bytes</h4>
+      <p><strong>Octet</strong> means exactly <strong>8 bits</strong>, so 1 octet = 1 byte. The term is common in French (where “octet” is the usual word for byte) and in networking and telecom: RFCs and standards often use “octet” to avoid ambiguity, because on some older systems a “byte” could be 6, 7, or 9 bits.</p>
+      <p style="margin-top: 0.35rem;"><strong>On modern systems, byte and octet are the same.</strong> So the scaled units match too: <strong>1 megabyte (MB) = 1 megaoctet (Mo)</strong>, 1 gigabyte (GB) = 1 gigaoctet (Go), 1 kilobyte (KB) = 1 kilooctet (Ko), and so on. “Mo” and “Go” are the usual French abbreviations; in this converter, octets are in the same list as bytes. The converter treats bytes and octets identically.</p>
+    </div>
+
+    <div class="explain-block">
+      <h4>Decimal (SI) vs Binary (IEC) — MB vs MiB</h4>
+      <p><strong>Decimal units</strong> (KB, MB, GB, TB) use powers of <strong>1,000</strong>: 1 KB = 1,000 B, 1 MB = 1,000,000 B. Used by storage manufacturers (so “1 TB” looks larger) and in many apps and docs.</p>
+      <p style="margin-top: 0.35rem;"><strong>Binary units</strong> (KiB, MiB, GiB, TiB) use powers of <strong>1,024</strong>: 1 KiB = 1,024 B, 1 MiB = 1,048,576 B. Better match for how computers address memory (powers of 2). Used in RAM, by many OS tools (e.g. <code>ls -lh</code>), and in technical contexts. So “1 GB” (decimal) = 1 billion bytes; “1 GiB” (binary) = 1,073,741,824 bytes — about 7.4% more.</p>
+    </div>
+
+    <div class="explain-block">
+      <h4>Unit reference</h4>
+      <table class="explain-table" id="explainTable"></table>
+    </div>
+  </section>
+
+  <script>
+(function () {
+  var BYTES = 1;
+  var K = 1000;
+  var KI = 1024;
+
+  var UNITS = [
+    { id: 'B', label: 'Bytes (B)', bytesPerUnit: BYTES, group: 'byte-decimal', name: 'Byte', explain: '8 bits. Standard unit for file size, memory, and storage. One byte ≈ one character (e.g. ASCII).' },
+    { id: 'o', label: 'Octets (octet)', bytesPerUnit: BYTES, group: 'byte-decimal', name: 'Octet', explain: 'Exactly 8 bits = 1 byte. Used in French and in networking/telecom (e.g. RFCs) to mean unambiguously “8 bits”, since “byte” could historically vary by system.' },
+    { id: 'KB', label: 'Kilobytes (KB)', bytesPerUnit: K, group: 'byte-decimal', name: 'Kilobyte', explain: '1,000 bytes (10³). SI decimal. Used for small files, cache sizes, and in networking contexts.' },
+    { id: 'MB', label: 'Megabytes (MB)', bytesPerUnit: K * K, group: 'byte-decimal', name: 'Megabyte', explain: '1,000,000 bytes (10⁶). Common for downloads, images, short videos, and “MB” in everyday use.' },
+    { id: 'GB', label: 'Gigabytes (GB)', bytesPerUnit: K * K * K, group: 'byte-decimal', name: 'Gigabyte', explain: '1 billion bytes (10⁹). Used for RAM size, SSD/HDD capacity, and large files (e.g. games, videos).' },
+    { id: 'TB', label: 'Terabytes (TB)', bytesPerUnit: K * K * K * K, group: 'byte-decimal', name: 'Terabyte', explain: '1 trillion bytes (10¹²). Typical for hard drives, backups, and personal/small-server storage.' },
+    { id: 'PB', label: 'Petabytes (PB)', bytesPerUnit: K * K * K * K * K, group: 'byte-decimal', name: 'Petabyte', explain: '10¹⁵ bytes. Used in data centers, big data, and cloud storage at scale.' },
+    { id: 'EB', label: 'Exabytes (EB)', bytesPerUnit: K * K * K * K * K * K, group: 'byte-decimal', name: 'Exabyte', explain: '10¹⁸ bytes. Used for global or hyperscale storage and traffic estimates.' },
+
+    { id: 'KiB', label: 'Kibibytes (KiB)', bytesPerUnit: KI, group: 'byte-binary', name: 'Kibibyte', explain: '1,024 bytes (2¹⁰). IEC binary. What many tools report (e.g. “1.0K” in ls -lh).' },
+    { id: 'MiB', label: 'Mebibytes (MiB)', bytesPerUnit: KI * KI, group: 'byte-binary', name: 'Mebibyte', explain: '1,048,576 bytes (2²⁰). Binary “megabyte”. RAM and OS often use MiB; 1 MiB ≈ 1.05 MB.' },
+    { id: 'GiB', label: 'Gibibytes (GiB)', bytesPerUnit: KI * KI * KI, group: 'byte-binary', name: 'Gibibyte', explain: '2³⁰ bytes. Common for RAM (e.g. “8 GiB”) and in Linux/technical contexts. 1 GiB ≈ 1.07 GB.' },
+    { id: 'TiB', label: 'Tebibytes (TiB)', bytesPerUnit: KI * KI * KI * KI, group: 'byte-binary', name: 'Tebibyte', explain: '2⁴⁰ bytes. Used when precision matters (e.g. RAID, backups). 1 TiB ≈ 1.10 TB.' },
+    { id: 'PiB', label: 'Pebibytes (PiB)', bytesPerUnit: KI * KI * KI * KI * KI, group: 'byte-binary', name: 'Pebibyte', explain: '2⁵⁰ bytes. Data center and archival storage in binary units.' },
+    { id: 'EiB', label: 'Exbibytes (EiB)', bytesPerUnit: KI * KI * KI * KI * KI * KI, group: 'byte-binary', name: 'Exbibyte', explain: '2⁶⁰ bytes. Largest common binary unit; used in hyperscale contexts.' },
+
+    { id: 'b', label: 'Bits (b)', bytesPerUnit: 1/8, group: 'bit-decimal', name: 'Bit', explain: 'Smallest unit: 0 or 1. Speeds are often in bits/sec (Mbps, Gbps); 8 bits = 1 byte.' },
+    { id: 'Kb', label: 'Kilobits (Kb)', bytesPerUnit: K/8, group: 'bit-decimal', name: 'Kilobit', explain: '1,000 bits. Used for low-speed links and small rates (e.g. kbps).' },
+    { id: 'Mb', label: 'Megabits (Mb)', bytesPerUnit: K*K/8, group: 'bit-decimal', name: 'Megabit', explain: '1 million bits. Common for internet speed: “100 Mbps” = 100 megabit/s ≈ 12.5 MB/s.' },
+    { id: 'Gb', label: 'Gigabits (Gb)', bytesPerUnit: K*K*K/8, group: 'bit-decimal', name: 'Gigabit', explain: '1 billion bits. Used for fast links (e.g. “1 Gbps” Ethernet).' },
+    { id: 'Tb', label: 'Terabits (Tb)', bytesPerUnit: K*K*K*K/8, group: 'bit-decimal', name: 'Terabit', explain: '10¹² bits. Used for backbone and data center link capacity.' },
+
+    { id: 'Kib', label: 'Kibibits (Kib)', bytesPerUnit: KI/8, group: 'bit-binary', name: 'Kibibit', explain: '1,024 bits (2¹⁰). Binary kilobit; rarely used in practice.' },
+    { id: 'Mib', label: 'Mebibits (Mib)', bytesPerUnit: KI*KI/8, group: 'bit-binary', name: 'Mebibit', explain: '2²⁰ bits. Sometimes used for precise bit-rate or buffer sizes.' },
+    { id: 'Gib', label: 'Gibibits (Gib)', bytesPerUnit: KI*KI*KI/8, group: 'bit-binary', name: 'Gibibit', explain: '2³⁰ bits. Used in networking and specs when binary is preferred.' },
+    { id: 'Tib', label: 'Tebibits (Tib)', bytesPerUnit: KI*KI*KI*KI/8, group: 'bit-binary', name: 'Tebibit', explain: '2⁴⁰ bits. High-capacity link or storage specs in binary.' }
+  ];
+
+  var GROUPS = [
+    { id: 'byte-decimal', title: 'Bytes (decimal — SI)' },
+    { id: 'byte-binary', title: 'Bytes (binary — IEC)' },
+    { id: 'bit-decimal', title: 'Bits (decimal)' },
+    { id: 'bit-binary', title: 'Bits (binary)' }
+  ];
+
+  var inputEl = document.getElementById('input');
+  var fromUnitSelect = document.getElementById('fromUnit');
+  var outputSection = document.getElementById('outputSection');
+  var explainTable = document.getElementById('explainTable');
+
+  function initUnits() {
+    UNITS.forEach(function (u) {
+      var opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = u.label;
+      if (u.id === 'B') opt.selected = true;
+      fromUnitSelect.appendChild(opt);
+    });
+  }
+
+  function formatNum(n) {
+    if (n === 0) return '0';
+    if (isNaN(n) || !isFinite(n)) return '—';
+    if (n >= 1e15 || (n < 1e-6 && n > 0)) return n.toExponential(4);
+    if (n >= 1e6 || (n < 0.0001 && n > 0)) return n.toLocaleString('en', { maximumFractionDigits: 4 });
+    if (Math.abs(n) >= 1 && Number.isInteger(n)) return String(n);
+    var s = n.toFixed(6).replace(/\.?0+$/, '');
+    return s;
+  }
+
+  function update() {
+    var fromId = fromUnitSelect.value;
+    var fromUnit = UNITS.find(function (u) { return u.id === fromId; });
+    if (!fromUnit) return;
+
+    var raw = (inputEl.value || '').trim();
+    var num = raw === '' ? null : parseFloat(raw);
+    if (num !== null && (isNaN(num) || num < 0)) num = null;
+
+    var bytes = (num !== null && num >= 0) ? num * fromUnit.bytesPerUnit : null;
+
+    outputSection.innerHTML = '';
+    GROUPS.forEach(function (grp) {
+      var unitsInGroup = UNITS.filter(function (u) { return u.group === grp.id; });
+      var div = document.createElement('div');
+      div.className = 'output-group';
+      var h3 = document.createElement('h3');
+      h3.textContent = grp.title;
+      div.appendChild(h3);
+      var grid = document.createElement('div');
+      grid.className = 'output-grid';
+      unitsInGroup.forEach(function (u) {
+        var item = document.createElement('div');
+        item.className = 'output-item';
+        var unitSpan = document.createElement('div');
+        unitSpan.className = 'unit';
+        unitSpan.textContent = u.label;
+        var valueSpan = document.createElement('div');
+        valueSpan.className = 'value' + (bytes === null ? ' empty' : '');
+        if (bytes === null) {
+          valueSpan.textContent = raw ? 'Invalid' : '—';
+          if (raw) valueSpan.style.color = '#c00';
+        } else {
+          var val = bytes / u.bytesPerUnit;
+          valueSpan.textContent = formatNum(val);
+        }
+        item.appendChild(unitSpan);
+        item.appendChild(valueSpan);
+        grid.appendChild(item);
+      });
+      div.appendChild(grid);
+      outputSection.appendChild(div);
+    });
+  }
+
+  function buildExplainTable() {
+    var html = '';
+    UNITS.forEach(function (u) {
+      html += '<tr><td class="unit-name">' + u.id + '</td><td>' + u.name + '</td><td>' + u.explain + '</td></tr>';
+    });
+    explainTable.innerHTML = html;
+  }
+
+  inputEl.addEventListener('input', update);
+  fromUnitSelect.addEventListener('change', update);
+
+  initUnits();
+  buildExplainTable();
+  update();
+})();
+  </script>
+</body>
+</html>

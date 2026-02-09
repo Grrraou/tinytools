@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T01:26:36.668Z",
+  "generatedAt": "2026-02-09T01:35:26.740Z",
   "categories": [
     "Text",
     "Encoding",
@@ -286,6 +286,26 @@
       ],
       "order": 5,
       "icon": "⌨️"
+    },
+    {
+      "id": "byte-converter",
+      "path": "tools/byte-converter/",
+      "name": "Byte converter",
+      "category": "Other",
+      "description": "Convert between bytes, KB, MB, GB, KiB, MiB, bits and more. Decimal vs binary (MB vs MiB). Explanations included.",
+      "keywords": [
+        "byte",
+        "kilobyte",
+        "megabyte",
+        "gigabyte",
+        "MB",
+        "MiB",
+        "bits",
+        "storage",
+        "convert"
+      ],
+      "order": 6,
+      "icon": "💾"
     }
   ]
 }
