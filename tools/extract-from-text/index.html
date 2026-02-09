@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Extract from text</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .row { margin-bottom: 1rem; }
+    textarea { width: 100%; min-height: 120px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    textarea:focus { outline: none; border-color: #1a73e8; }
+    input[type="text"] { width: 100%; max-width: 24rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9rem; }
+    input:focus { outline: none; border-color: #1a73e8; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .btn-row button { padding: 0.5rem 0.75rem; font: inherit; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .btn-row button:hover { background: #e8e8e8; }
+    .btn-row button.primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .btn-row button.primary:hover { background: #1557b0; }
+    .regex-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .regex-row input { flex: 1; min-width: 12rem; }
+    .regex-row label { margin-bottom: 0; margin-right: 0.25rem; }
+    .output-wrap { margin-top: 1rem; }
+    .output-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem; }
+    .output-head label { margin-bottom: 0; }
+    .output-head .copy-btn { padding: 0.25rem 0.5rem; font-size: 0.85rem; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .output-head .copy-btn:hover { background: #e8e8e8; }
+    .output-head .copy-btn.copied { background: #0a7; color: #fff; border-color: #0a7; }
+    #output { width: 100%; min-height: 100px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #f8f9fa; resize: vertical; }
+    #output:focus { outline: none; border-color: #1a73e8; }
+    .note { font-size: 0.85rem; color: #555; margin-top: 0.25rem; }
+    .error { color: #c00; font-size: 0.9rem; margin-top: 0.25rem; }
+    .search-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+    .search-row label { margin-bottom: 0; }
+    .search-row input { max-width: 16rem; }
+    .count { font-size: 0.85rem; color: #666; }
+    .input-wrap { position: relative; }
+    .input-highlight { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 0.5rem; font-family: ui-monospace, monospace; font-size: 0.9rem; line-height: 1.4; white-space: pre-wrap; word-wrap: break-word; overflow: auto; pointer-events: none; z-index: 0; border: 1px solid transparent; border-radius: 4px; color: transparent; }
+    .input-highlight mark { background: rgba(255, 235, 59, 0.6); color: #1a1a1a; border-radius: 2px; padding: 0 1px; }
+    #input { position: relative; z-index: 1; background: rgba(255, 255, 255, 0.85); resize: none; line-height: 1.4; }
+    #input:focus { background: #fff; }
+  </style>
+</head>
+<body>
+  <h1>Extract from text</h1>
+  <p style="margin: 0 0 1rem 0; font-size: 0.9rem; color: #555;">Paste text below, then click a button to extract emails, phones, URLs, dates, or use your own regex.</p>
+
+  <div class="row">
+    <label for="input">Text</label>
+    <div class="input-wrap">
+      <div class="input-highlight" id="inputHighlight" aria-hidden="true"></div>
+      <textarea id="input" placeholder="Paste or type text here…" rows="6"></textarea>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button type="button" id="btnEmails">Extract emails</button>
+    <button type="button" id="btnPhones">Extract phones</button>
+    <button type="button" id="btnUrls">Extract URLs</button>
+    <button type="button" id="btnDates">Extract dates</button>
+    <button type="button" id="btnAll" class="primary">Extract all</button>
+  </div>
+
+  <div class="row">
+    <label>Custom regex</label>
+    <div class="regex-row">
+      <input type="text" id="regexPattern" placeholder="e.g. #[a-zA-Z0-9_]+ for hashtags" />
+      <label><input type="checkbox" id="regexCaseInsensitive" /> i (ignore case)</label>
+      <label><input type="checkbox" id="regexMultiline" /> m (multiline)</label>
+      <button type="button" id="btnRegex">Extract with regex</button>
+    </div>
+    <p class="note">Use a capturing group () to extract only the group; otherwise the full match is used. Example: <code>price: (\d+\.?\d*)</code> extracts numbers after "price:".</p>
+    <p id="regexError" class="error" style="display: none;"></p>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-head">
+      <label for="output">Results</label>
+      <span class="count" id="resultCount"></span>
+      <div class="search-row" style="margin-left: auto;">
+        <label for="searchOutput">Search in results</label>
+        <input type="text" id="searchOutput" placeholder="Filter results…" aria-label="Filter results" />
+      </div>
+      <button type="button" class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <textarea id="output" readonly placeholder="Click a button to extract…"></textarea>
+  </div>
+
+  <script>
+(function () {
+  var input = document.getElementById('input');
+  var output = document.getElementById('output');
+  var searchOutput = document.getElementById('searchOutput');
+  var resultCountEl = document.getElementById('resultCount');
+  var regexPattern = document.getElementById('regexPattern');
+  var regexCaseInsensitive = document.getElementById('regexCaseInsensitive');
+  var regexMultiline = document.getElementById('regexMultiline');
+  var regexError = document.getElementById('regexError');
+
+  var fullResultText = '';
+  var fullResultCount = 0;
+  var lastHighlightPatterns = null;
+  var inputHighlight = document.getElementById('inputHighlight');
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function getMatchRanges(text, patterns) {
+    var ranges = [];
+    var list = Array.isArray(patterns) ? patterns : [patterns];
+    list.forEach(function (re) {
+      var r = new RegExp(re.source, re.flags || 'g');
+      var m;
+      while ((m = r.exec(text)) !== null) {
+        ranges.push([m.index, m.index + m[0].length]);
+      }
+    });
+    ranges.sort(function (a, b) { return a[0] - b[0]; });
+    var merged = [];
+    ranges.forEach(function (r) {
+      if (merged.length && r[0] <= merged[merged.length - 1][1]) {
+        merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], r[1]);
+      } else {
+        merged.push(r.slice());
+      }
+    });
+    return merged;
+  }
+
+  function buildHighlightHtml(text, ranges) {
+    if (!ranges.length) return escapeHtml(text);
+    var out = [];
+    var last = 0;
+    ranges.forEach(function (r) {
+      if (r[0] > last) out.push(escapeHtml(text.slice(last, r[0])));
+      out.push('<mark>' + escapeHtml(text.slice(r[0], r[1])) + '</mark>');
+      last = r[1];
+    });
+    if (last < text.length) out.push(escapeHtml(text.slice(last)));
+    return out.join('');
+  }
+
+  function highlightInput(patterns) {
+    var text = input.value || '';
+    lastHighlightPatterns = patterns;
+    if (!text) {
+      inputHighlight.innerHTML = '';
+      return;
+    }
+    if (!patterns || (Array.isArray(patterns) && !patterns.length)) {
+      inputHighlight.innerHTML = escapeHtml(text);
+      return;
+    }
+    var ranges = getMatchRanges(text, patterns);
+    inputHighlight.innerHTML = buildHighlightHtml(text, ranges);
+  }
+
+  function clearHighlight() {
+    lastHighlightPatterns = null;
+    var text = input.value || '';
+    inputHighlight.innerHTML = text ? escapeHtml(text) : '';
+  }
+
+  function dedupe(arr) {
+    var seen = {};
+    return arr.filter(function (x) {
+      var k = String(x).trim();
+      if (seen[k]) return false;
+      seen[k] = true;
+      return true;
+    });
+  }
+
+  function getText() {
+    return (input.value || '').trim();
+  }
+
+  function applyResultFilter() {
+    var q = (searchOutput.value || '').trim().toLowerCase();
+    if (!q) {
+      output.value = fullResultText;
+      resultCountEl.textContent = fullResultCount ? fullResultCount + ' result' + (fullResultCount !== 1 ? 's' : '') : '';
+      return;
+    }
+    var lines = fullResultText.split(/\r?\n/).filter(Boolean);
+    var filtered = lines.filter(function (line) { return line.toLowerCase().indexOf(q) !== -1; });
+    output.value = filtered.join('\n');
+    resultCountEl.textContent = fullResultCount ? 'Showing ' + filtered.length + ' of ' + fullResultCount : '';
+  }
+
+  function setOutput(lines) {
+    fullResultText = Array.isArray(lines) ? lines.filter(Boolean).join('\n') : (lines || '');
+    fullResultCount = fullResultText ? fullResultText.split(/\r?\n/).filter(Boolean).length : 0;
+    applyResultFilter();
+  }
+
+  function syncHighlightScroll() {
+    inputHighlight.scrollTop = input.scrollTop;
+    inputHighlight.scrollLeft = input.scrollLeft;
+  }
+
+  function onInputChange() {
+    var text = input.value || '';
+    if (lastHighlightPatterns) {
+      highlightInput(lastHighlightPatterns);
+    } else {
+      inputHighlight.innerHTML = text ? escapeHtml(text) : '';
+    }
+    syncHighlightScroll();
+  }
+
+  var PATTERNS = {
+    email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+    phone: /(?:\+\d{1,4}[\s\-.]?)?(?:\(?\d{2,4}\)?[\s\-.]?)?\d{3,4}[\s\-.]?\d{3,4}(?:[\s\-.]?\d{2,4})?/g,
+    url: /(?:https?:\/\/|www\.)[^\s<>"{}|\\^`[\]]+/gi,
+    urlPlain: /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?:\/[^\s<>"{}|\\^`[\]]*)?/g
+  };
+
+  function matchAll(regex, text) {
+    var results = [];
+    var re = new RegExp(regex.source, regex.flags || 'g');
+    var m;
+    while ((m = re.exec(text)) !== null) {
+      results.push(m[0]);
+    }
+    return results;
+  }
+
+  function extractEmails() {
+    var text = getText();
+    if (!text) { setOutput(''); clearHighlight(); return; }
+    var raw = matchAll(PATTERNS.email, text);
+    var cleaned = raw.map(function (s) { return s.replace(/[.,;:!?)]+$/, ''); });
+    setOutput(dedupe(cleaned));
+    highlightInput(PATTERNS.email);
+  }
+
+  function extractPhones() {
+    var text = getText();
+    if (!text) { setOutput(''); clearHighlight(); return; }
+    var raw = matchAll(PATTERNS.phone, text);
+    var cleaned = raw.map(function (s) {
+      var digits = s.replace(/\D/g, '');
+      if (digits.length < 7) return null;
+      return s.trim();
+    }).filter(Boolean);
+    setOutput(dedupe(cleaned));
+    highlightInput(PATTERNS.phone);
+  }
+
+  function extractUrls() {
+    var text = getText();
+    if (!text) { setOutput(''); clearHighlight(); return; }
+    var raw = matchAll(PATTERNS.url, text).concat(matchAll(PATTERNS.urlPlain, text));
+    var cleaned = raw.map(function (s) {
+      return s.replace(/[.,;:!?)\]>'"]+$/, '');
+    });
+    setOutput(dedupe(cleaned));
+    highlightInput([PATTERNS.url, PATTERNS.urlPlain]);
+  }
+
+  var DATE_PATTERNS = [
+    /\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?:\d{2})?(?:\s*Z|[+-]\d{2}:?\d{2})?)?\b/g,
+    /\b\d{2}\/\d{2}\/\d{2,4}\b/g,
+    /\b\d{2}\.\d{2}\.\d{2,4}\b/g,
+    /\b\d{2}-\d{2}-\d{2,4}\b/g,
+    /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{2,4}\b/gi,
+    /\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{2,4}\b/gi,
+    /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{2,4}\b/gi,
+    /\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{2,4}\b/gi
+  ];
+
+  function extractDates() {
+    var text = getText();
+    if (!text) { setOutput(''); clearHighlight(); return; }
+    var results = [];
+    DATE_PATTERNS.forEach(function (re) {
+      var m;
+      var r = new RegExp(re.source, re.flags || 'g');
+      while ((m = r.exec(text)) !== null) results.push(m[0]);
+    });
+    setOutput(dedupe(results));
+    highlightInput(DATE_PATTERNS);
+  }
+
+  function extractAll() {
+    var text = getText();
+    if (!text) { setOutput(''); clearHighlight(); return; }
+    var sections = [];
+    var emails = dedupe(matchAll(PATTERNS.email, text).map(function (s) { return s.replace(/[.,;:!?)]+$/, ''); }));
+    if (emails.length) sections.push('=== Emails ===\n' + emails.join('\n'));
+    var phones = dedupe(matchAll(PATTERNS.phone, text).map(function (s) { return s.trim(); }).filter(function (s) { return s.replace(/\D/g, '').length >= 7; }));
+    if (phones.length) sections.push('=== Phones ===\n' + phones.join('\n'));
+    var urls = dedupe(matchAll(PATTERNS.url, text).concat(matchAll(PATTERNS.urlPlain, text)).map(function (s) { return s.replace(/[.,;:!?)\]>'"]+$/, ''); }));
+    if (urls.length) sections.push('=== URLs ===\n' + urls.join('\n'));
+    var dates = [];
+    DATE_PATTERNS.forEach(function (re) {
+      var m, r = new RegExp(re.source, re.flags || 'g');
+      while ((m = r.exec(text)) !== null) dates.push(m[0]);
+    });
+    if (dates.length) sections.push('=== Dates ===\n' + dedupe(dates).join('\n'));
+    setOutput(sections.length ? sections.join('\n\n') : 'No emails, phones, URLs or dates found.');
+    highlightInput([PATTERNS.email, PATTERNS.phone, PATTERNS.url, PATTERNS.urlPlain].concat(DATE_PATTERNS));
+  }
+
+  function extractRegex() {
+    regexError.style.display = 'none';
+    var text = getText();
+    if (!text) { setOutput(''); clearHighlight(); return; }
+    var pattern = (regexPattern.value || '').trim();
+    if (!pattern) {
+      regexError.textContent = 'Enter a regex pattern.';
+      regexError.style.display = 'block';
+      return;
+    }
+    var flags = 'g';
+    if (regexCaseInsensitive.checked) flags += 'i';
+    if (regexMultiline.checked) flags += 'm';
+    try {
+      var re = new RegExp(pattern, flags);
+      var results = [];
+      var m;
+      while ((m = re.exec(text)) !== null) {
+        var val = (m[1] !== undefined) ? m[1] : m[0];
+        if (val != null && val !== '') results.push(val);
+      }
+      setOutput(dedupe(results));
+      highlightInput([re]);
+    } catch (e) {
+      regexError.textContent = 'Invalid regex: ' + e.message;
+      regexError.style.display = 'block';
+    }
+  }
+
+  document.getElementById('btnEmails').onclick = extractEmails;
+  document.getElementById('btnPhones').onclick = extractPhones;
+  document.getElementById('btnUrls').onclick = extractUrls;
+  document.getElementById('btnDates').onclick = extractDates;
+  document.getElementById('btnAll').onclick = extractAll;
+  document.getElementById('btnRegex').onclick = extractRegex;
+
+  document.getElementById('copyBtn').onclick = function () {
+    var text = output.value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(function () {
+      var btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+
+  searchOutput.addEventListener('input', applyResultFilter);
+  searchOutput.addEventListener('change', applyResultFilter);
+
+  input.addEventListener('scroll', syncHighlightScroll);
+  input.addEventListener('input', onInputChange);
+  input.addEventListener('change', onInputChange);
+})();
+  </script>
+</body>
+</html>

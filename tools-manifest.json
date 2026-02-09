@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T02:18:11.874Z",
+  "generatedAt": "2026-02-09T02:27:41.731Z",
   "categories": [
     "Text",
     "Encoding",
@@ -7,6 +7,25 @@
     "Other"
   ],
   "tools": [
+    {
+      "id": "extract-from-text",
+      "path": "tools/extract-from-text/",
+      "name": "Extract from text",
+      "category": "Text",
+      "description": "Extract emails, phones, URLs, dates or custom regex from text. One button per type, handles many formats.",
+      "keywords": [
+        "extract",
+        "email",
+        "phone",
+        "url",
+        "date",
+        "regex",
+        "parse",
+        "text"
+      ],
+      "order": 1,
+      "icon": "✂️"
+    },
     {
       "id": "unicode-search",
       "path": "tools/unicode-search/",
