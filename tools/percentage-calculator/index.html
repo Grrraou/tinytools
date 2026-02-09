@@ -7,29 +7,36 @@
   <style>
     * { box-sizing: border-box; }
     body, input { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
-    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    body { margin: 0; padding: 1rem; background: #f0f1f3; color: #1a1a1a; font-size: 0.95rem; }
     h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
-    h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem 0; color: #333; }
-    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
-    .row { margin-bottom: 1rem; }
-    input[type="text"] { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; width: 10rem; font-family: ui-monospace, monospace; }
-    input:focus { outline: none; border-color: #1a73e8; }
-    .input-row { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
-    .calc-block { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-    .calc-block h2 { margin: 0 0 0.75rem 0; font-size: 0.95rem; }
-    .result { margin-top: 0.75rem; font-size: 1.1rem; font-family: ui-monospace, monospace; font-weight: 500; color: #1a73e8; }
-    .result.empty { color: #999; font-weight: normal; }
-    .result.error { color: #c00; }
-    .formula { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
     .note { font-size: 0.85rem; color: #555; margin: 0 0 1rem 0; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .calc-block { background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; transition: border-color 0.2s, box-shadow 0.2s; }
+    .calc-block.focused { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25); }
+    .calc-block h2 { margin: 0 0 0.5rem 0; font-size: 0.95rem; color: #333; }
+    .examples { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.75rem; padding: 0.4rem 0; border-bottom: 1px dashed #e5e7eb; }
+    .examples span { display: block; margin-bottom: 0.2rem; }
+    .examples span:last-child { margin-bottom: 0; }
+    label { display: block; margin-bottom: 0.2rem; font-weight: 500; font-size: 0.9rem; }
+    .row { margin-bottom: 0.6rem; }
+    .row:last-of-type { margin-bottom: 0; }
+    input[type="text"] { padding: 0.4rem 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; width: 100%; max-width: 8rem; font-family: ui-monospace, monospace; }
+    input:focus { outline: none; border-color: #1a73e8; }
+    .input-row { display: flex; align-items: baseline; gap: 0.35rem; flex-wrap: wrap; }
+    .result { margin-top: 0.6rem; font-size: 0.95rem; font-family: ui-monospace, monospace; font-weight: 500; color: #1a73e8; line-height: 1.35; }
+    .result.empty { color: #9ca3af; font-weight: normal; }
+    .result.error { color: #c00; }
+    .formula { font-size: 0.72rem; color: #6b7280; margin-top: 0.2rem; }
   </style>
 </head>
 <body>
   <h1>Percentage calculator</h1>
-  <p class="note">Calculate <strong>x% of y</strong>, or <strong>what percent x is of y</strong>, and the reverse (from value).</p>
+  <p class="note">Calculate <strong>x% of y</strong>, what percent x is of y, increase/decrease, apply or reverse a percentage change, and symmetric percentage difference.</p>
 
-  <div class="calc-block">
+  <div class="card-grid">
+  <div class="calc-block" id="card-of" data-focus="of">
     <h2>1. What is <em>x</em>% of <em>y</em>?</h2>
+    <p class="examples"><span>e.g. 15% tip on a €80 bill → €12</span><span>e.g. 20% VAT on £250 → £50</span></p>
     <div class="row">
       <label for="pctOf">Percent (%)</label>
       <div class="input-row">
@@ -47,8 +54,9 @@
     <p class="formula" id="formulaOf">Result = (percent ÷ 100) × value</p>
   </div>
 
-  <div class="calc-block">
-    <h2>2. <em>x</em> is what percent of <em>y</em>?</h2>
+  <div class="calc-block" id="card-is" data-focus="is">
+    <h2>2. <em>x</em> is what % of <em>y</em>?</h2>
+    <p class="examples"><span>e.g. 25 out of 200 points → 12.5%</span><span>e.g. €40 discount on €160 → 25% off</span></p>
     <div class="row">
       <label for="isVal">Value (<em>x</em>)</label>
       <div class="input-row">
@@ -66,8 +74,9 @@
     <p class="formula" id="formulaIs">Percent = (value ÷ total) × 100</p>
   </div>
 
-  <div class="calc-block">
-    <h2>3. <em>y</em> is <em>x</em>% of what number?</h2>
+  <div class="calc-block" id="card-from" data-focus="from">
+    <h2>3. <em>y</em> is <em>x</em>% of what?</h2>
+    <p class="examples"><span>e.g. 75 is 25% of what? → 300</span><span>e.g. €90 after 10% tax → pre-tax €81.82</span></p>
     <div class="row">
       <label for="fromVal">Value (<em>y</em>)</label>
       <div class="input-row">
@@ -84,6 +93,86 @@
     </div>
     <p class="result" id="resultFrom">—</p>
     <p class="formula" id="formulaFrom">Total = value ÷ (percent ÷ 100)</p>
+  </div>
+
+  <div class="calc-block" id="card-inc" data-focus="inc">
+    <h2>4. % increase / decrease</h2>
+    <p class="examples"><span>e.g. Salary 50k → 55k → +10% increase</span><span>e.g. Stock $100 → $85 → −15% decrease</span></p>
+    <div class="row">
+      <label for="incFrom">Original value</label>
+      <div class="input-row">
+        <input type="text" id="incFrom" placeholder="e.g. 100" inputmode="decimal" autocomplete="off" />
+        <span>→</span>
+      </div>
+    </div>
+    <div class="row">
+      <label for="incTo">New value</label>
+      <div class="input-row">
+        <input type="text" id="incTo" placeholder="e.g. 150" inputmode="decimal" autocomplete="off" />
+      </div>
+    </div>
+    <p class="result" id="resultInc">—</p>
+    <p class="formula" id="formulaInc">% change = ((new − original) ÷ original) × 100</p>
+  </div>
+
+  <div class="calc-block" id="card-apply" data-focus="apply">
+    <h2>5. Apply % change</h2>
+    <p class="examples"><span>e.g. $100 + 20% → $120 (markup)</span><span>e.g. $80 − 15% → $68 (sale price)</span></p>
+    <div class="row">
+      <label for="applyVal">Value</label>
+      <div class="input-row">
+        <input type="text" id="applyVal" placeholder="e.g. 100" inputmode="decimal" autocomplete="off" />
+      </div>
+    </div>
+    <div class="row">
+      <label for="applyPct">Percentage change (%)</label>
+      <div class="input-row">
+        <input type="text" id="applyPct" placeholder="e.g. 20" inputmode="decimal" autocomplete="off" />
+        <span>(use negative for decrease)</span>
+      </div>
+    </div>
+    <p class="result" id="resultApply">—</p>
+    <p class="formula" id="formulaApply">Result = value × (1 + percent ÷ 100)</p>
+  </div>
+
+  <div class="calc-block" id="card-rev" data-focus="rev">
+    <h2>6. Reverse % change</h2>
+    <p class="examples"><span>e.g. Price with 20% VAT is €120 → pre-VAT €100</span><span>e.g. After 30% off you pay €70 → original €100</span></p>
+    <div class="row">
+      <label for="revResult">Result (current value)</label>
+      <div class="input-row">
+        <input type="text" id="revResult" placeholder="e.g. 120" inputmode="decimal" autocomplete="off" />
+      </div>
+    </div>
+    <div class="row">
+      <label for="revPct">Percentage that was applied (%)</label>
+      <div class="input-row">
+        <input type="text" id="revPct" placeholder="e.g. 20" inputmode="decimal" autocomplete="off" />
+        <span>(+ for increase, − for decrease)</span>
+      </div>
+    </div>
+    <p class="result" id="resultRev">—</p>
+    <p class="formula" id="formulaRev">Original = result ÷ (1 + percent ÷ 100)</p>
+  </div>
+
+  <div class="calc-block" id="card-diff" data-focus="diff">
+    <h2>7. % difference (symmetric)</h2>
+    <p class="examples"><span>e.g. Compare two quotes: 80 vs 120 → 40% diff</span><span>e.g. A/B test: variant 90 vs control 110 → ~20% diff</span></p>
+    <div class="row">
+      <label for="diffA">Value A</label>
+      <div class="input-row">
+        <input type="text" id="diffA" placeholder="e.g. 80" inputmode="decimal" autocomplete="off" />
+      </div>
+    </div>
+    <div class="row">
+      <label for="diffB">Value B</label>
+      <div class="input-row">
+        <input type="text" id="diffB" placeholder="e.g. 120" inputmode="decimal" autocomplete="off" />
+      </div>
+    </div>
+    <p class="result" id="resultDiff">—</p>
+    <p class="formula" id="formulaDiff">% diff = |A − B| ÷ ((A + B) ÷ 2) × 100</p>
+  </div>
   </div>
 
   <script>
@@ -103,6 +192,41 @@
   var resultFrom = document.getElementById('resultFrom');
   var formulaFrom = document.getElementById('formulaFrom');
 
+  var incFrom = document.getElementById('incFrom');
+  var incTo = document.getElementById('incTo');
+  var resultInc = document.getElementById('resultInc');
+  var formulaInc = document.getElementById('formulaInc');
+
+  var applyVal = document.getElementById('applyVal');
+  var applyPct = document.getElementById('applyPct');
+  var resultApply = document.getElementById('resultApply');
+  var formulaApply = document.getElementById('formulaApply');
+
+  var revResult = document.getElementById('revResult');
+  var revPct = document.getElementById('revPct');
+  var resultRev = document.getElementById('resultRev');
+  var formulaRev = document.getElementById('formulaRev');
+
+  var diffA = document.getElementById('diffA');
+  var diffB = document.getElementById('diffB');
+  var resultDiff = document.getElementById('resultDiff');
+  var formulaDiff = document.getElementById('formulaDiff');
+
+  var currentFocus = null;
+  var FOCUS_KEYS = ['of', 'is', 'from', 'inc', 'apply', 'rev', 'diff'];
+
+  function setFocus(key) {
+    currentFocus = key;
+    document.querySelectorAll('.calc-block').forEach(function (card) {
+      card.classList.toggle('focused', card.getAttribute('data-focus') === key);
+    });
+    syncUrl();
+  }
+
+  function getCardByFocus(key) {
+    return document.querySelector('.calc-block[data-focus="' + key + '"]');
+  }
+
   function parseNum(s) {
     if (s == null || (s = String(s).trim()) === '') return NaN;
     var n = parseFloat(s.replace(/,/g, ''));
@@ -111,24 +235,23 @@
 
   function syncUrl() {
     var params = new URLSearchParams(window.location.search);
-    var p1 = pctOf.value.trim();
-    var v1 = valueOf.value.trim();
-    var p2 = isVal.value.trim();
-    var t2 = isTotal.value.trim();
-    var v3 = fromVal.value.trim();
-    var p3 = fromPct.value.trim();
-    if (p1) params.set('pct', p1);
-    else params.delete('pct');
-    if (v1) params.set('of', v1);
-    else params.delete('of');
-    if (p2) params.set('is', p2);
-    else params.delete('is');
-    if (t2) params.set('total', t2);
-    else params.delete('total');
-    if (v3) params.set('fromVal', v3);
-    else params.delete('fromVal');
-    if (p3) params.set('fromPct', p3);
-    else params.delete('fromPct');
+    function set(key, val) { if (val) params.set(key, val); else params.delete(key); }
+    set('pct', pctOf.value.trim());
+    set('of', valueOf.value.trim());
+    set('is', isVal.value.trim());
+    set('total', isTotal.value.trim());
+    set('fromVal', fromVal.value.trim());
+    set('fromPct', fromPct.value.trim());
+    set('incFrom', incFrom.value.trim());
+    set('incTo', incTo.value.trim());
+    set('applyVal', applyVal.value.trim());
+    set('applyPct', applyPct.value.trim());
+    set('revResult', revResult.value.trim());
+    set('revPct', revPct.value.trim());
+    set('diffA', diffA.value.trim());
+    set('diffB', diffB.value.trim());
+    if (currentFocus && FOCUS_KEYS.indexOf(currentFocus) !== -1) params.set('focus', currentFocus);
+    else params.delete('focus');
     var qs = params.toString();
     var url = window.location.pathname + (qs ? '?' + qs : '');
     if (window.parent !== window) {
@@ -201,33 +324,146 @@
     formulaFrom.textContent = v + ' ÷ (' + p + ' ÷ 100) = ' + t;
   }
 
+  function runInc() {
+    var a = parseNum(incFrom.value);
+    var b = parseNum(incTo.value);
+    if (isNaN(a) || isNaN(b)) {
+      resultInc.textContent = '—';
+      resultInc.className = 'result empty';
+      formulaInc.textContent = '% change = ((new − original) ÷ original) × 100';
+      return;
+    }
+    if (a === 0) {
+      resultInc.textContent = 'Original must be non-zero';
+      resultInc.className = 'result error';
+      formulaInc.textContent = '% change = ((new − original) ÷ original) × 100';
+      return;
+    }
+    var pct = ((b - a) / a) * 100;
+    var dir = pct >= 0 ? 'increase' : 'decrease';
+    resultInc.textContent = (pct >= 0 ? '+' : '') + pct + '% ' + dir + ' (from ' + a + ' to ' + b + ')';
+    resultInc.className = 'result';
+    formulaInc.textContent = '((' + b + ' − ' + a + ') ÷ ' + a + ') × 100 = ' + pct + '%';
+  }
+
+  function runApply() {
+    var v = parseNum(applyVal.value);
+    var p = parseNum(applyPct.value);
+    if (isNaN(v) || isNaN(p)) {
+      resultApply.textContent = '—';
+      resultApply.className = 'result empty';
+      formulaApply.textContent = 'Result = value × (1 + percent ÷ 100)';
+      return;
+    }
+    var r = v * (1 + p / 100);
+    resultApply.textContent = v + (p >= 0 ? ' + ' : ' ') + p + '% = ' + r;
+    resultApply.className = 'result';
+    formulaApply.textContent = v + ' × (1 + ' + p + ' ÷ 100) = ' + r;
+  }
+
+  function runRev() {
+    var r = parseNum(revResult.value);
+    var p = parseNum(revPct.value);
+    if (isNaN(r) || isNaN(p)) {
+      resultRev.textContent = '—';
+      resultRev.className = 'result empty';
+      formulaRev.textContent = 'Original = result ÷ (1 + percent ÷ 100)';
+      return;
+    }
+    var factor = 1 + p / 100;
+    if (factor === 0) {
+      resultRev.textContent = 'Invalid: 100% decrease leaves no original';
+      resultRev.className = 'result error';
+      formulaRev.textContent = 'Original = result ÷ (1 + percent ÷ 100)';
+      return;
+    }
+    var orig = r / factor;
+    resultRev.textContent = 'Original = ' + orig + ' (result ' + r + ' after ' + (p >= 0 ? '+' : '') + p + '%)';
+    resultRev.className = 'result';
+    formulaRev.textContent = r + ' ÷ (1 + ' + p + ' ÷ 100) = ' + orig;
+  }
+
+  function runDiff() {
+    var a = parseNum(diffA.value);
+    var b = parseNum(diffB.value);
+    if (isNaN(a) && isNaN(b)) {
+      resultDiff.textContent = '—';
+      resultDiff.className = 'result empty';
+      formulaDiff.textContent = '% diff = |A − B| ÷ ((A + B) ÷ 2) × 100';
+      return;
+    }
+    if (isNaN(a) || isNaN(b)) {
+      resultDiff.textContent = '—';
+      resultDiff.className = 'result empty';
+      formulaDiff.textContent = '% diff = |A − B| ÷ ((A + B) ÷ 2) × 100';
+      return;
+    }
+    if (a + b === 0) {
+      resultDiff.textContent = 'Average is zero; symmetric % difference undefined';
+      resultDiff.className = 'result error';
+      formulaDiff.textContent = '% diff = |A − B| ÷ ((A + B) ÷ 2) × 100';
+      return;
+    }
+    var avg = (a + b) / 2;
+    var diff = Math.abs(a - b);
+    var pct = (diff / avg) * 100;
+    resultDiff.textContent = 'Symmetric difference: ' + pct + '% (|' + a + ' − ' + b + '| ÷ ' + avg + ' × 100)';
+    resultDiff.className = 'result';
+    formulaDiff.textContent = diff + ' ÷ ' + avg + ' × 100 = ' + pct + '%';
+  }
+
   function run() {
     runOf();
     runIs();
     runFrom();
+    runInc();
+    runApply();
+    runRev();
+    runDiff();
     syncUrl();
   }
 
-  [pctOf, valueOf, isVal, isTotal, fromVal, fromPct].forEach(function (el) {
-    el.addEventListener('input', run);
-    el.addEventListener('change', run);
+  var inputToFocus = [
+    [pctOf, valueOf], [isVal, isTotal], [fromVal, fromPct], [incFrom, incTo],
+    [applyVal, applyPct], [revResult, revPct], [diffA, diffB]
+  ];
+  inputToFocus.forEach(function (inputs, i) {
+    var key = FOCUS_KEYS[i];
+    inputs.forEach(function (el) {
+      el.addEventListener('input', run);
+      el.addEventListener('change', run);
+      el.addEventListener('focus', function () { setFocus(key); });
+    });
   });
 
   (function initFromUrl() {
     var params = new URLSearchParams(window.location.search);
-    var pct = params.get('pct');
-    var of = params.get('of');
-    var is = params.get('is');
-    var total = params.get('total');
-    var fromValP = params.get('fromVal');
-    var fromPctP = params.get('fromPct');
-    if (pct != null) pctOf.value = pct;
-    if (of != null) valueOf.value = of;
-    if (is != null) isVal.value = is;
-    if (total != null) isTotal.value = total;
-    if (fromValP != null) fromVal.value = fromValP;
-    if (fromPctP != null) fromPct.value = fromPctP;
+    function fill(id, key) { var v = params.get(key); if (v != null) document.getElementById(id).value = v; }
+    fill('pctOf', 'pct');
+    fill('valueOf', 'of');
+    fill('isVal', 'is');
+    fill('isTotal', 'total');
+    fill('fromVal', 'fromVal');
+    fill('fromPct', 'fromPct');
+    fill('incFrom', 'incFrom');
+    fill('incTo', 'incTo');
+    fill('applyVal', 'applyVal');
+    fill('applyPct', 'applyPct');
+    fill('revResult', 'revResult');
+    fill('revPct', 'revPct');
+    fill('diffA', 'diffA');
+    fill('diffB', 'diffB');
     run();
+    var focusParam = params.get('focus');
+    if (focusParam && FOCUS_KEYS.indexOf(focusParam) !== -1) {
+      setFocus(focusParam);
+      var card = getCardByFocus(focusParam);
+      if (card) {
+        setTimeout(function () {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    }
   })();
 })();
   </script>
