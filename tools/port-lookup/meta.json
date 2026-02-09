@@ -1,1 +1,1 @@
-{"name":"Port number lookup","description":"Look up port numbers: 443 → HTTPS, with description and common usage for each","category":"Web","keywords":["port","tcp","udp","https","dns","lookup","service"],"order":5,"icon":"🔌"}
+{"name":"Port number lookup","description":"Look up port numbers: 443 → HTTPS, with description and common usage for each","category":"Web & APIs","categories":["Web & APIs","Reference"],"keywords":["port","tcp","udp","https","dns","lookup","service"],"order":5,"icon":"🔌"}

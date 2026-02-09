@@ -1,1 +1,1 @@
-{"name":"Countdown","description":"Time until a date: countdown in seconds, minutes, hours, days and weeks. Updates in real time.","category":"Other","keywords":["countdown","time","date","seconds","minutes","hours","days","until"],"order":10,"icon":"⏱️"}
+{"name":"Countdown","description":"Time until a date: countdown in seconds, minutes, hours, days and weeks. Updates in real time.","category":"Time & Date","categories":["Time & Date"],"keywords":["countdown","time","date","seconds","minutes","hours","days","until"],"order":10,"icon":"⏱️"}

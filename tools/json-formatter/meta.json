@@ -1,1 +1,1 @@
-{"name":"JSON formatter","description":"Format or minify JSON with indent. Search and navigate inside the formatted output.","category":"Web","keywords":["json","format","minify","pretty","parse","indent"],"order":1,"icon":"📋"}
+{"name":"JSON formatter","description":"Format or minify JSON with indent. Search and navigate inside the formatted output.","category":"Web & APIs","categories":["Web & APIs"],"keywords":["json","format","minify","pretty","parse","indent"],"order":1,"icon":"📋"}

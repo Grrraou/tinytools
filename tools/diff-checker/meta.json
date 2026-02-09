@@ -1,1 +1,1 @@
-{"name":"Diff checker","description":"Text A vs Text B — visual diff to quickly find differences between two texts","category":"Text","keywords":["diff","compare","text","difference","merge"],"order":3,"icon":"🔀"}
+{"name":"Diff checker","description":"Text A vs Text B — visual diff to quickly find differences between two texts","category":"Text","categories":["Text"],"keywords":["diff","compare","text","difference","merge"],"order":3,"icon":"🔀"}

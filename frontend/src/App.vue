@@ -101,7 +101,11 @@ const filteredTools = computed(() => {
     );
   }
   if (selectedCategory.value) {
-    list = list.filter((t) => t.category === selectedCategory.value);
+    list = list.filter(
+      (t) =>
+        (t.categories && t.categories.includes(selectedCategory.value)) ||
+        t.category === selectedCategory.value
+    );
   }
   return list;
 });
@@ -226,9 +230,16 @@ function toolIcon(slug) {
           :pending-content="pendingConverterContent"
           @content-sent="pendingConverterContent = null"
         />
-        <div v-else class="welcome">
-          <h2>Pick a tool</h2>
-          <p>Choose a tool from the list or use search. Each tool runs in its own sandbox.</p>
+        <div v-else class="landing">
+          <h2 class="landing-title">Helpers</h2>
+          <p class="landing-lead">A collection of small, focused dev tools — encoding, converters, text utilities, and reference — in one place. No sign-up, no tracking. Each tool has a direct URL so you can bookmark or share it.</p>
+          <ul class="landing-features">
+            <li><strong>Shareable links</strong> — Every tool lives at <code>/t/<em>slug</em></code>; query params are preserved so you can link to a specific state (e.g. a timestamp or encode result).</li>
+            <li><strong>Search & categories</strong> — Find tools by name, description, or keywords; filter by category. A tool can appear in multiple categories.</li>
+            <li><strong>Sandboxed</strong> — Tools run in iframes with a strict sandbox; the shell only serves static files and the manifest.</li>
+            <li><strong>Easy to extend</strong> — Add a folder under <code>tools/</code> with <code>index.html</code> and <code>meta.json</code>, run <code>generate-manifest</code>, and the tool shows up in the list.</li>
+          </ul>
+          <p class="landing-cta">Choose a tool from the sidebar or use search to get started.</p>
         </div>
       </section>
     </main>
@@ -389,16 +400,49 @@ body {
   color: #e08080;
 }
 
-.welcome {
-  padding: 2rem;
+.landing {
+  padding: 2rem 2.5rem;
+  max-width: 42rem;
   color: var(--text-muted);
 }
 
-.welcome h2 {
+.landing-title {
   margin: 0 0 0.5rem;
   color: var(--text);
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 600;
+}
+
+.landing-lead {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.landing-features {
+  margin: 0 0 1.25rem;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.landing-features li {
+  margin-bottom: 0.6rem;
+}
+
+.landing-features code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  color: var(--text);
+}
+
+.landing-cta {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .favorites-row {

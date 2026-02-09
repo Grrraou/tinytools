@@ -1,1 +1,1 @@
-{"name":"Base converter","description":"Convert numbers between binary, decimal, hex, octal and any custom base (2–36)","category":"Encoding","keywords":["base","binary","decimal","hex","octal","radix","convert","number"],"order":1,"icon":"#️⃣"}
+{"name":"Base converter","description":"Convert numbers between binary, decimal, hex, octal and any custom base (2–36)","category":"Encoding","categories":["Encoding"],"keywords":["base","binary","decimal","hex","octal","radix","convert","number"],"order":1,"icon":"#️⃣"}

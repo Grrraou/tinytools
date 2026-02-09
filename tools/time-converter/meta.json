@@ -1,1 +1,1 @@
-{"name":"Time converter","description":"Convert timestamps (Unix, ISO) and view the same moment in any time zone","category":"Other","keywords":["time","timestamp","timezone","unix","iso","utc","date"],"order":1,"icon":"🕐"}
+{"name":"Time converter","description":"Convert timestamps (Unix, ISO) and view the same moment in any time zone","category":"Time & Date","categories":["Time & Date"],"keywords":["time","timestamp","timezone","unix","iso","utc","date"],"order":1,"icon":"🕐"}

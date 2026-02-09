@@ -7,6 +7,21 @@ defineProps({
 });
 
 const emit = defineEmits(['select-category']);
+
+const categoryIcons = {
+  'Text': '📝',
+  'Encoding': '🔐',
+  'Web & APIs': '🌐',
+  'CSS & Design': '🎨',
+  'Units & Numbers': '🔢',
+  'Time & Date': '🕐',
+  'Reference': '📚',
+  'Other': '📌',
+};
+
+function categoryIcon(cat) {
+  return categoryIcons[cat] || '📌';
+}
 </script>
 
 <template>
@@ -21,6 +36,7 @@ const emit = defineEmits(['select-category']);
         draggable="false"
         @click="emit('select-category', cat)"
       >
+        <span class="category-icon" aria-hidden="true">{{ categoryIcon(cat) }}</span>
         {{ cat }}
       </button>
     </nav>
@@ -76,6 +92,14 @@ const emit = defineEmits(['select-category']);
 .category-btn:hover {
   color: var(--text);
   border-color: var(--text-muted);
+}
+
+.category-icon {
+  display: inline-block;
+  margin-right: 0.35rem;
+  font-size: 0.95em;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .category-btn.active {

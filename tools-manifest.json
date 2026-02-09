@@ -1,10 +1,13 @@
 {
-  "generatedAt": "2026-02-09T02:27:41.731Z",
+  "generatedAt": "2026-02-09T12:32:58.307Z",
   "categories": [
     "Text",
     "Encoding",
-    "Web",
-    "Other"
+    "Web & APIs",
+    "CSS & Design",
+    "Units & Numbers",
+    "Time & Date",
+    "Reference"
   ],
   "tools": [
     {
@@ -12,6 +15,9 @@
       "path": "tools/extract-from-text/",
       "name": "Extract from text",
       "category": "Text",
+      "categories": [
+        "Text"
+      ],
       "description": "Extract emails, phones, URLs, dates or custom regex from text. One button per type, handles many formats.",
       "keywords": [
         "extract",
@@ -31,6 +37,10 @@
       "path": "tools/unicode-search/",
       "name": "Unicode Search",
       "category": "Text",
+      "categories": [
+        "Text",
+        "Reference"
+      ],
       "description": "Search Unicode characters by name or code point",
       "keywords": [
         "unicode",
@@ -46,6 +56,9 @@
       "path": "tools/case-converter/",
       "name": "Case converter",
       "category": "Text",
+      "categories": [
+        "Text"
+      ],
       "description": "Convert text between camelCase, snake_case, kebab-case, PascalCase, UPPER_SNAKE, Title Case, and more",
       "keywords": [
         "case",
@@ -64,6 +77,9 @@
       "path": "tools/diff-checker/",
       "name": "Diff checker",
       "category": "Text",
+      "categories": [
+        "Text"
+      ],
       "description": "Text A vs Text B — visual diff to quickly find differences between two texts",
       "keywords": [
         "diff",
@@ -80,6 +96,9 @@
       "path": "tools/base-converter/",
       "name": "Base converter",
       "category": "Encoding",
+      "categories": [
+        "Encoding"
+      ],
       "description": "Convert numbers between binary, decimal, hex, octal and any custom base (2–36)",
       "keywords": [
         "base",
@@ -99,6 +118,9 @@
       "path": "tools/base64/",
       "name": "Base64 Encode / Decode",
       "category": "Encoding",
+      "categories": [
+        "Encoding"
+      ],
       "description": "Encode or decode text and files to/from Base64",
       "keywords": [
         "base64",
@@ -112,7 +134,10 @@
       "id": "html-encode-decode",
       "path": "tools/html-encode-decode/",
       "name": "HTML Encode / Decode",
-      "category": "Web",
+      "category": "Encoding",
+      "categories": [
+        "Encoding"
+      ],
       "description": "Encode or decode HTML entities",
       "keywords": [
         "html",
@@ -125,27 +150,14 @@
       "icon": "📄"
     },
     {
-      "id": "json-formatter",
-      "path": "tools/json-formatter/",
-      "name": "JSON formatter",
-      "category": "Web",
-      "description": "Format or minify JSON with indent. Search and navigate inside the formatted output.",
-      "keywords": [
-        "json",
-        "format",
-        "minify",
-        "pretty",
-        "parse",
-        "indent"
-      ],
-      "order": 1,
-      "icon": "📋"
-    },
-    {
       "id": "url-encode-decode",
       "path": "tools/url-encode-decode/",
       "name": "URL Encode / Decode",
-      "category": "Web",
+      "category": "Encoding",
+      "categories": [
+        "Encoding",
+        "Web & APIs"
+      ],
       "description": "Percent-encode for URLs (query or path segment) or decode percent-encoded text",
       "keywords": [
         "url",
@@ -159,29 +171,33 @@
       "icon": "🔗"
     },
     {
-      "id": "css-units-converter",
-      "path": "tools/css-units-converter/",
-      "name": "CSS units converter",
-      "category": "Web",
-      "description": "Convert between px, rem, em, %, vw, vh, pt and more. Set base font-size and viewport for accurate conversion.",
-      "keywords": [
-        "css",
-        "units",
-        "px",
-        "rem",
-        "em",
-        "viewport",
-        "convert",
-        "frontend"
+      "id": "json-formatter",
+      "path": "tools/json-formatter/",
+      "name": "JSON formatter",
+      "category": "Web & APIs",
+      "categories": [
+        "Web & APIs"
       ],
-      "order": 3,
-      "icon": "📐"
+      "description": "Format or minify JSON with indent. Search and navigate inside the formatted output.",
+      "keywords": [
+        "json",
+        "format",
+        "minify",
+        "pretty",
+        "parse",
+        "indent"
+      ],
+      "order": 1,
+      "icon": "📋"
     },
     {
       "id": "json-xml-array-converter",
       "path": "tools/json-xml-array-converter/",
       "name": "JSON / XML / Array converter",
-      "category": "Web",
+      "category": "Web & APIs",
+      "categories": [
+        "Web & APIs"
+      ],
       "description": "Convert between JSON, XML, PHP array, JavaScript, Python dict, and YAML. Accepts JSON formatter output via Send to converter.",
       "keywords": [
         "json",
@@ -200,7 +216,11 @@
       "id": "http-status-codes",
       "path": "tools/http-status-codes/",
       "name": "HTTP status codes",
-      "category": "Web",
+      "category": "Web & APIs",
+      "categories": [
+        "Web & APIs",
+        "Reference"
+      ],
       "description": "List and search all HTTP return codes with an explanation for each",
       "keywords": [
         "http",
@@ -218,7 +238,11 @@
       "id": "port-lookup",
       "path": "tools/port-lookup/",
       "name": "Port number lookup",
-      "category": "Web",
+      "category": "Web & APIs",
+      "categories": [
+        "Web & APIs",
+        "Reference"
+      ],
       "description": "Look up port numbers: 443 → HTTPS, with description and common usage for each",
       "keywords": [
         "port",
@@ -233,28 +257,13 @@
       "icon": "🔌"
     },
     {
-      "id": "time-converter",
-      "path": "tools/time-converter/",
-      "name": "Time converter",
-      "category": "Other",
-      "description": "Convert timestamps (Unix, ISO) and view the same moment in any time zone",
-      "keywords": [
-        "time",
-        "timestamp",
-        "timezone",
-        "unix",
-        "iso",
-        "utc",
-        "date"
-      ],
-      "order": 1,
-      "icon": "🕐"
-    },
-    {
       "id": "color-converter",
       "path": "tools/color-converter/",
       "name": "Color converter",
-      "category": "Other",
+      "category": "CSS & Design",
+      "categories": [
+        "CSS & Design"
+      ],
       "description": "Convert between Hex, RGB, HSL, HSV/HSB, and CSS named colors. Color picker and auto-detect from text.",
       "keywords": [
         "color",
@@ -271,65 +280,35 @@
       "icon": "🎨"
     },
     {
-      "id": "cron-parser",
-      "path": "tools/cron-parser/",
-      "name": "Cron parser",
-      "category": "Other",
-      "description": "Input cron expression, show next 5 run times in local time",
+      "id": "css-units-converter",
+      "path": "tools/css-units-converter/",
+      "name": "CSS units converter",
+      "category": "CSS & Design",
+      "categories": [
+        "CSS & Design"
+      ],
+      "description": "Convert between px, rem, em, %, vw, vh, pt and more. Set base font-size and viewport for accurate conversion.",
       "keywords": [
-        "cron",
-        "schedule",
-        "next run",
-        "crontab",
-        "cron expression"
+        "css",
+        "units",
+        "px",
+        "rem",
+        "em",
+        "viewport",
+        "convert",
+        "frontend"
       ],
       "order": 3,
-      "icon": "⏰"
-    },
-    {
-      "id": "keyboard-shortcuts",
-      "path": "tools/keyboard-shortcuts/",
-      "name": "Keyboard shortcuts",
-      "category": "Other",
-      "description": "OS keyboard shortcuts: Windows, Mac, and Linux with search",
-      "keywords": [
-        "keyboard",
-        "shortcut",
-        "hotkey",
-        "windows",
-        "mac",
-        "linux",
-        "reference"
-      ],
-      "order": 4,
-      "icon": "⌨️"
-    },
-    {
-      "id": "shell-oneliner",
-      "path": "tools/shell-oneliner/",
-      "name": "Shell one-liner",
-      "category": "Other",
-      "description": "Build shell one-liners for common commands: CMD, PowerShell, Bash, Mac. Variables and flags per command.",
-      "keywords": [
-        "shell",
-        "oneliner",
-        "cmd",
-        "powershell",
-        "bash",
-        "mac",
-        "ssh",
-        "curl",
-        "grep",
-        "reference"
-      ],
-      "order": 5,
-      "icon": "⌨️"
+      "icon": "📐"
     },
     {
       "id": "byte-converter",
       "path": "tools/byte-converter/",
       "name": "Byte converter",
-      "category": "Other",
+      "category": "Units & Numbers",
+      "categories": [
+        "Units & Numbers"
+      ],
       "description": "Convert between bytes, KB, MB, GB, KiB, MiB, bits and more. Decimal vs binary (MB vs MiB). Explanations included.",
       "keywords": [
         "byte",
@@ -349,7 +328,10 @@
       "id": "distance-converter",
       "path": "tools/distance-converter/",
       "name": "Distance converter",
-      "category": "Other",
+      "category": "Units & Numbers",
+      "categories": [
+        "Units & Numbers"
+      ],
       "description": "Convert between metric, imperial and astronomical distances. mm, km, miles, light-years, parsecs and more, with explanations.",
       "keywords": [
         "distance",
@@ -371,7 +353,10 @@
       "id": "temperature-converter",
       "path": "tools/temperature-converter/",
       "name": "Temperature converter",
-      "category": "Other",
+      "category": "Units & Numbers",
+      "categories": [
+        "Units & Numbers"
+      ],
       "description": "Convert between Celsius, Fahrenheit, Kelvin and Rankine. Explanations for each scale.",
       "keywords": [
         "temperature",
@@ -389,7 +374,10 @@
       "id": "angle-converter",
       "path": "tools/angle-converter/",
       "name": "Angle converter",
-      "category": "Other",
+      "category": "Units & Numbers",
+      "categories": [
+        "Units & Numbers"
+      ],
       "description": "Convert between degrees, radians, gradians, arc minutes, arc seconds and turns. Visual representation of the angle.",
       "keywords": [
         "angle",
@@ -404,10 +392,73 @@
       "icon": "∠"
     },
     {
+      "id": "percentage-calculator",
+      "path": "tools/percentage-calculator/",
+      "name": "Percentage calculator",
+      "category": "Units & Numbers",
+      "categories": [
+        "Units & Numbers"
+      ],
+      "description": "Calculate x% of y, or what percent x is of y (and reverse: from value).",
+      "keywords": [
+        "percentage",
+        "percent",
+        "of",
+        "what percent",
+        "reverse",
+        "calculate"
+      ],
+      "order": 11,
+      "icon": "%"
+    },
+    {
+      "id": "time-converter",
+      "path": "tools/time-converter/",
+      "name": "Time converter",
+      "category": "Time & Date",
+      "categories": [
+        "Time & Date"
+      ],
+      "description": "Convert timestamps (Unix, ISO) and view the same moment in any time zone",
+      "keywords": [
+        "time",
+        "timestamp",
+        "timezone",
+        "unix",
+        "iso",
+        "utc",
+        "date"
+      ],
+      "order": 1,
+      "icon": "🕐"
+    },
+    {
+      "id": "cron-parser",
+      "path": "tools/cron-parser/",
+      "name": "Cron parser",
+      "category": "Time & Date",
+      "categories": [
+        "Time & Date"
+      ],
+      "description": "Input cron expression, show next 5 run times in local time",
+      "keywords": [
+        "cron",
+        "schedule",
+        "next run",
+        "crontab",
+        "cron expression"
+      ],
+      "order": 3,
+      "icon": "⏰"
+    },
+    {
       "id": "countdown",
       "path": "tools/countdown/",
       "name": "Countdown",
-      "category": "Other",
+      "category": "Time & Date",
+      "categories": [
+        "Time & Date"
+      ],
       "description": "Time until a date: countdown in seconds, minutes, hours, days and weeks. Updates in real time.",
       "keywords": [
         "countdown",
@@ -421,6 +472,51 @@
       ],
       "order": 10,
       "icon": "⏱️"
+    },
+    {
+      "id": "keyboard-shortcuts",
+      "path": "tools/keyboard-shortcuts/",
+      "name": "Keyboard shortcuts",
+      "category": "Reference",
+      "categories": [
+        "Reference"
+      ],
+      "description": "OS keyboard shortcuts: Windows, Mac, and Linux with search",
+      "keywords": [
+        "keyboard",
+        "shortcut",
+        "hotkey",
+        "windows",
+        "mac",
+        "linux",
+        "reference"
+      ],
+      "order": 4,
+      "icon": "⌨️"
+    },
+    {
+      "id": "shell-oneliner",
+      "path": "tools/shell-oneliner/",
+      "name": "Shell one-liner",
+      "category": "Reference",
+      "categories": [
+        "Reference"
+      ],
+      "description": "Build shell one-liners for common commands: CMD, PowerShell, Bash, Mac. Variables and flags per command.",
+      "keywords": [
+        "shell",
+        "oneliner",
+        "cmd",
+        "powershell",
+        "bash",
+        "mac",
+        "ssh",
+        "curl",
+        "grep",
+        "reference"
+      ],
+      "order": 5,
+      "icon": "⌨️"
     }
   ]
 }

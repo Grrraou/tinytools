@@ -1,1 +1,1 @@
-{"name":"Case converter","description":"Convert text between camelCase, snake_case, kebab-case, PascalCase, UPPER_SNAKE, Title Case, and more","category":"Text","keywords":["case","camel","snake","kebab","pascal","convert","naming"],"order":2,"icon":"🔀"}
+{"name":"Case converter","description":"Convert text between camelCase, snake_case, kebab-case, PascalCase, UPPER_SNAKE, Title Case, and more","category":"Text","categories":["Text"],"keywords":["case","camel","snake","kebab","pascal","convert","naming"],"order":2,"icon":"🔀"}

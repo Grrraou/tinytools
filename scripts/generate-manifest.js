@@ -10,7 +10,16 @@ const path = require('path');
 const TOOLS_DIR = path.join(__dirname, '..', 'tools');
 const MANIFEST_PATH = path.join(__dirname, '..', 'tools-manifest.json');
 
-const CATEGORY_ORDER = ['Text', 'Encoding', 'Web', 'Hashing', 'Other'];
+const CATEGORY_ORDER = [
+  'Text',
+  'Encoding',
+  'Web & APIs',
+  'CSS & Design',
+  'Units & Numbers',
+  'Time & Date',
+  'Reference',
+  'Other',
+];
 
 function getDirectories(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -41,11 +50,15 @@ function buildManifest() {
 
     const meta = readMeta(toolPath);
     const slug = name;
+    const categories = Array.isArray(meta?.categories)
+      ? meta.categories.filter((c) => c && typeof c === 'string')
+      : [meta?.category || 'Other'];
     tools.push({
       id: slug,
       path: `tools/${slug}/`,
-      name: meta?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-      category: meta?.category || 'Other',
+      name: meta?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      category: categories[0] || 'Other',
+      categories,
       description: meta?.description || '',
       keywords: meta?.keywords || [],
       order: meta?.order != null ? meta.order : 999,
@@ -53,7 +66,7 @@ function buildManifest() {
     });
   }
 
-  // Sort: by category order, then by meta order, then by name
+  // Sort: by first category order, then by meta order, then by name
   tools.sort((a, b) => {
     const ai = CATEGORY_ORDER.indexOf(a.category);
     const bi = CATEGORY_ORDER.indexOf(b.category);
@@ -64,11 +77,14 @@ function buildManifest() {
     return a.name.localeCompare(b.name);
   });
 
+  const allCats = [...new Set(tools.flatMap((t) => t.categories || [t.category]))];
+  const categories = allCats.sort(
+    (a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
+  );
+
   const manifest = {
     generatedAt: new Date().toISOString(),
-    categories: [...new Set(tools.map(t => t.category))].sort(
-      (a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
-    ),
+    categories,
     tools,
   };
 

@@ -1,1 +1,1 @@
-{"name":"URL Encode / Decode","description":"Percent-encode for URLs (query or path segment) or decode percent-encoded text","category":"Web","keywords":["url","encode","decode","percent","escape","query"],"order":2,"icon":"🔗"}
+{"name":"URL Encode / Decode","description":"Percent-encode for URLs (query or path segment) or decode percent-encoded text","category":"Encoding","categories":["Encoding","Web & APIs"],"keywords":["url","encode","decode","percent","escape","query"],"order":2,"icon":"🔗"}
