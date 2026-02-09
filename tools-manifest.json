@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T00:34:07.142Z",
+  "generatedAt": "2026-02-09T00:43:10.737Z",
   "categories": [
     "Text",
     "Encoding",
@@ -19,7 +19,8 @@
         "codepoint",
         "search"
       ],
-      "order": 1
+      "order": 1,
+      "icon": "🔤"
     },
     {
       "id": "case-converter",
@@ -36,7 +37,8 @@
         "convert",
         "naming"
       ],
-      "order": 2
+      "order": 2,
+      "icon": "🔀"
     },
     {
       "id": "base64",
@@ -49,7 +51,8 @@
         "encode",
         "decode"
       ],
-      "order": 1
+      "order": 1,
+      "icon": "📦"
     },
     {
       "id": "html-encode-decode",
@@ -64,7 +67,8 @@
         "decode",
         "escape"
       ],
-      "order": 1
+      "order": 1,
+      "icon": "📄"
     },
     {
       "id": "json-formatter",
@@ -80,7 +84,8 @@
         "parse",
         "indent"
       ],
-      "order": 1
+      "order": 1,
+      "icon": "📋"
     },
     {
       "id": "url-encode-decode",
@@ -96,7 +101,8 @@
         "escape",
         "query"
       ],
-      "order": 2
+      "order": 2,
+      "icon": "🔗"
     },
     {
       "id": "json-xml-array-converter",
@@ -114,7 +120,8 @@
         "yaml",
         "convert"
       ],
-      "order": 3
+      "order": 3,
+      "icon": "🔄"
     },
     {
       "id": "http-status-codes",
@@ -131,7 +138,8 @@
         "rfc",
         "response"
       ],
-      "order": 4
+      "order": 4,
+      "icon": "📡"
     },
     {
       "id": "time-converter",
@@ -148,7 +156,8 @@
         "utc",
         "date"
       ],
-      "order": 1
+      "order": 1,
+      "icon": "🕐"
     },
     {
       "id": "color-converter",
@@ -167,7 +176,8 @@
         "picker",
         "convert"
       ],
-      "order": 2
+      "order": 2,
+      "icon": "🎨"
     },
     {
       "id": "cron-parser",
@@ -182,7 +192,8 @@
         "crontab",
         "cron expression"
       ],
-      "order": 3
+      "order": 3,
+      "icon": "⏰"
     }
   ]
 }

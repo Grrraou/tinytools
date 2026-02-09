@@ -1,1 +1,1 @@
-{"name":"Cron parser","description":"Input cron expression, show next 5 run times in local time","category":"Other","keywords":["cron","schedule","next run","crontab","cron expression"],"order":3}
+{"name":"Cron parser","description":"Input cron expression, show next 5 run times in local time","category":"Other","keywords":["cron","schedule","next run","crontab","cron expression"],"order":3,"icon":"⏰"}

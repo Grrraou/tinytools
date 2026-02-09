@@ -49,6 +49,7 @@ function buildManifest() {
       description: meta?.description || '',
       keywords: meta?.keywords || [],
       order: meta?.order != null ? meta.order : 999,
+      icon: meta?.icon ?? '',
     });
   }
 

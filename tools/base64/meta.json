@@ -1,7 +1,1 @@
-{
-  "name": "Base64 Encode / Decode",
-  "description": "Encode or decode text and files to/from Base64",
-  "category": "Encoding",
-  "keywords": ["base64", "encode", "decode"],
-  "order": 1
-}
+{"name":"Base64 Encode / Decode","description":"Encode or decode text and files to/from Base64","category":"Encoding","keywords":["base64","encode","decode"],"order":1,"icon":"📦"}

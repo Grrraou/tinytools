@@ -18,6 +18,7 @@ const emit = defineEmits(['select-category']);
         type="button"
         class="category-btn"
         :class="{ active: selectedCategory === cat }"
+        draggable="false"
         @click="emit('select-category', cat)"
       >
         {{ cat }}
@@ -29,7 +30,10 @@ const emit = defineEmits(['select-category']);
           :to="{ name: 'tool', params: { slug: tool.id } }"
           class="tool-btn"
           :class="{ active: selectedTool?.id === tool.id }"
+          :title="tool.description || tool.name"
+          draggable="false"
         >
+          <span v-if="tool.icon" class="tool-icon" aria-hidden="true">{{ tool.icon }}</span>
           <span class="tool-name">{{ tool.name }}</span>
           <span v-if="tool.description" class="tool-desc">{{ tool.description }}</span>
         </router-link>
@@ -41,9 +45,9 @@ const emit = defineEmits(['select-category']);
 
 <style scoped>
 .tool-list {
-  flex: 1;
-  overflow-y: auto;
   padding: 0.5rem 0;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .categories {
@@ -53,6 +57,9 @@ const emit = defineEmits(['select-category']);
   padding: 0 0.75rem 0.5rem;
   border-bottom: 1px solid var(--border);
   margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .category-btn {
@@ -110,8 +117,16 @@ const emit = defineEmits(['select-category']);
   border-left-color: var(--accent);
 }
 
+.tool-icon {
+  display: inline-block;
+  margin-right: 0.4rem;
+  font-size: 1rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
 .tool-name {
-  display: block;
+  display: inline;
   font-weight: 500;
   font-size: 0.9rem;
 }
