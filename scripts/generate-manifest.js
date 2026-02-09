@@ -20,6 +20,7 @@ const CATEGORY_ORDER = [
   'Finance',
   'Time & Date',
   'Reference',
+  'External',
   'Other',
 ];
 

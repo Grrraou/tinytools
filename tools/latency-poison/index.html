@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chaos proxy (Latency Poison)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 1rem; font-family: system-ui, sans-serif; background: #f0f1f3; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    .note { color: #555; font-size: 0.9rem; margin: 0 0 1rem 0; line-height: 1.5; }
+    .card { background: #fff; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; max-width: 40rem; }
+    .card p { margin: 0 0 0.75rem 0; line-height: 1.5; }
+    .card p:last-of-type { margin-bottom: 0; }
+    .card ul { margin: 0.5rem 0 0.75rem 1.25rem; padding: 0; line-height: 1.5; }
+    .card li { margin-bottom: 0.35rem; }
+    .link-wrap { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+    .link-wrap a { display: inline-block; padding: 0.5rem 1rem; background: #1a73e8; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.9rem; }
+    .link-wrap a:hover { background: #1557b0; }
+    .link-wrap a:focus { outline: 2px solid #1a73e8; outline-offset: 2px; }
+    .link-wrap .secondary { background: #fff; color: #1a73e8; border: 1px solid #1a73e8; }
+    .link-wrap .secondary:hover { background: #f0f7ff; }
+    .url { font-size: 0.8rem; color: #6b7280; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>Chaos proxy (Latency Poison)</h1>
+  <p class="note">External tool by RootSolve. This page describes what it does and links to the app and docs.</p>
+
+  <div class="card">
+    <p><strong>Chaos proxy</strong> (Latency Poison) is a proxy that sits in front of your services and <strong>injects configurable latency</strong> — and optionally failures or other behaviour — into HTTP traffic. You use it to see how your app behaves when responses are delayed or unreliable (“latency poison”).</p>
+    <p>Typical use:</p>
+    <ul>
+      <li>Point your client (or another service) at the proxy instead of the real backend.</li>
+      <li>Configure delay, jitter, or failure rates in the proxy.</li>
+      <li>Observe timeouts, retries, and degradation in your app.</li>
+    </ul>
+    <p>Docs explain configuration, behaviour, and how to run it. Open the links below (they open in a new tab).</p>
+    <div class="link-wrap">
+      <a href="https://latencypoison.rootsolve.org/" target="_blank" rel="noopener noreferrer">Open Chaos proxy →</a>
+      <a href="https://latencypoison.rootsolve.org/docs" target="_blank" rel="noopener noreferrer" class="secondary">Docs</a>
+    </div>
+    <p class="url">https://latencypoison.rootsolve.org/ · https://latencypoison.rootsolve.org/docs</p>
+  </div>
+</body>
+</html>

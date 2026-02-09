@@ -6,6 +6,22 @@ import ToolFrame from './components/ToolFrame.vue';
 
 const FAVORITES_KEY = 'helpers-favorites';
 const FAVORITES_MAX = 6;
+const SIDEBAR_COLLAPSED_KEY = 'helpers-sidebar-collapsed';
+
+function loadSidebarCollapsed() {
+  try {
+    const v = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    return v === '1';
+  } catch {
+    return false;
+  }
+}
+
+function saveSidebarCollapsed(collapsed) {
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
+  } catch (_) {}
+}
 
 // Global encryption key manager — same localStorage key used by tools (see tools/data-masking, etc.).
 const ENCRYPTION_KEYS_STORAGE_KEY = 'helpers-encryption-keys';
@@ -104,6 +120,13 @@ const newRegexName = ref('');
 const newRegexPattern = ref('');
 const newRegexFlags = ref('g');
 const regexManagerMessage = ref('');
+
+const sidebarCollapsed = ref(loadSidebarCollapsed());
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+  saveSidebarCollapsed(sidebarCollapsed.value);
+}
 
 const manifestUrl = '/tools-manifest.json';
 
@@ -363,14 +386,18 @@ function toolIcon(slug) {
 <template>
   <div class="app">
     <header class="header">
-      <div class="header-top">
+      <div class="header-row header-row-1">
         <router-link to="/" class="logo">
           <img src="/img/logo.png" alt="" class="logo-img" />
           <span>TinyTools</span>
         </router-link>
         <p class="tagline">Converters, text, time, encoding &amp; more — one place</p>
+        <div class="header-managers">
+          <button type="button" class="keys-btn" title="Encryption key manager" @click="openKeyManager">Keys</button>
+          <button type="button" class="keys-btn" title="Regex pattern manager" @click="openRegexManager">Regex</button>
+        </div>
       </div>
-      <div class="favorites-row">
+      <div class="header-row favorites-row">
         <span class="favorites-label">Favorites</span>
         <div class="favorites-slots">
           <template v-for="(fav, index) in favorites" :key="favoriteId(fav.slug, fav.query)">
@@ -380,33 +407,7 @@ function toolIcon(slug) {
               <button type="button" class="favorite-remove" aria-label="Remove from favorites" @click.prevent.stop="removeFavorite(index)">×</button>
             </router-link>
           </template>
-          <button
-            v-if="canAddFavorite"
-            type="button"
-            class="favorite-add"
-            title="Add current tool to favorites"
-            @click="addCurrentToFavorites"
-          >
-            + Add current
-          </button>
-        </div>
-        <div class="header-managers">
-          <button
-            type="button"
-            class="keys-btn"
-            title="Encryption key manager"
-            @click="openKeyManager"
-          >
-            Keys
-          </button>
-          <button
-            type="button"
-            class="keys-btn"
-            title="Regex pattern manager"
-            @click="openRegexManager"
-          >
-            Regex
-          </button>
+          <button v-if="canAddFavorite" type="button" class="favorite-add" title="Add current tool to favorites" @click="addCurrentToFavorites">+ Add current</button>
         </div>
       </div>
     </header>
@@ -466,11 +467,20 @@ function toolIcon(slug) {
     </div>
 
     <main class="main">
-      <aside class="sidebar">
+      <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+        <button
+          type="button"
+          class="sidebar-toggle"
+          :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          aria-label="Toggle sidebar"
+          @click="toggleSidebar"
+        >
+          {{ sidebarCollapsed ? '»' : '«' }}
+        </button>
         <div v-if="error" class="error">{{ error }}</div>
         <div v-else-if="loading" class="loading">Loading tools…</div>
         <template v-else>
-          <div class="search-wrap">
+          <div v-show="!sidebarCollapsed" class="search-wrap">
             <input
               v-model="searchQuery"
               type="search"
@@ -486,6 +496,7 @@ function toolIcon(slug) {
               :tools="filteredTools"
               :selected-tool="selectedTool"
               :selected-category="selectedCategory"
+              :collapsed="sidebarCollapsed"
               @select-category="selectCategory"
             />
           </div>
@@ -562,23 +573,46 @@ body {
 }
 
 .header {
-  padding: 0.75rem 1.5rem 1rem;
+  padding: 0.35rem 1rem 0.45rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
+  flex-shrink: 0;
 }
 
-.header-top {
-  margin-bottom: 0.75rem;
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-height: 0;
+}
+
+.header-row-1 {
+  gap: 0.75rem;
+}
+
+.header-row-1 .tagline {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.header-managers {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   color: var(--text);
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -586,15 +620,14 @@ body {
 }
 
 .logo-img {
-  height: 1.75rem;
+  height: 1.35rem;
   width: auto;
   vertical-align: middle;
 }
 
 .tagline {
-  margin: 0.25rem 0 0;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
 .main {
@@ -615,6 +648,40 @@ body {
   overflow: hidden;
   -webkit-user-drag: none;
   user-drag: none;
+  transition: width 0.2s ease;
+}
+
+.sidebar.collapsed {
+  width: 52px;
+}
+
+.sidebar.collapsed .search-wrap {
+  padding: 0;
+  border: none;
+}
+
+.sidebar-toggle {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 0.5rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sidebar-toggle:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem;
+  font-size: 1.1rem;
 }
 
 .sidebar-scroll {
@@ -715,14 +782,11 @@ body {
 }
 
 .favorites-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .favorites-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -730,22 +794,22 @@ body {
 .favorites-slots {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-wrap: wrap;
 }
 
 .favorite-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.4rem;
+  gap: 0.25rem;
+  padding: 0.15rem 0.3rem;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--text);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-decoration: none;
-  max-width: 10rem;
+  max-width: 9rem;
 }
 
 .favorite-icon {
@@ -767,13 +831,13 @@ body {
 
 .favorite-remove {
   flex-shrink: 0;
-  width: 1.1em;
-  height: 1.1em;
+  width: 1em;
+  height: 1em;
   padding: 0;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   border-radius: 2px;
@@ -785,12 +849,12 @@ body {
 }
 
 .favorite-add {
-  padding: 0.25rem 0.5rem;
+  padding: 0.15rem 0.35rem;
   background: transparent;
   border: 1px dashed var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -800,19 +864,16 @@ body {
 }
 
 .header-managers {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
   margin-left: auto;
 }
 
 .keys-btn {
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 

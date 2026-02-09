@@ -91,7 +91,7 @@ If the repo is currently named something else (e.g. `helpers`) and you want to r
 }
 ```
 
-**Categories** (order in sidebar): `Text`, `Encoding`, `Cryptography`, `Web & APIs`, `CSS & Design`, `Units & Numbers`, `Finance`, `Time & Date`, `Reference`, `Other`. Use `category` or `categories` (array) in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
+**Categories** (order in sidebar): `Text`, `Encoding`, `Cryptography`, `Web & APIs`, `CSS & Design`, `Units & Numbers`, `Finance`, `Time & Date`, `Reference`, `External`, `Other`. Use `category` or `categories` (array) in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
 
 **Tool rules:**
 

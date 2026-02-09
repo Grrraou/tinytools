@@ -4,6 +4,7 @@ defineProps({
   tools: { type: Array, default: () => [] },
   selectedTool: { type: Object, default: null },
   selectedCategory: { type: String, default: null },
+  collapsed: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['select-category']);
@@ -17,16 +18,21 @@ const categoryIcons = {
   'Units & Numbers': '🔢',
   'Time & Date': '🕐',
   'Reference': '📚',
+  'External': '🔗',
   'Other': '📌',
 };
 
 function categoryIcon(cat) {
   return categoryIcons[cat] || '📌';
 }
+
+function toolDisplayIcon(tool) {
+  return tool?.icon || '•';
+}
 </script>
 
 <template>
-  <div class="tool-list">
+  <div class="tool-list" :class="{ collapsed }">
     <nav class="categories" aria-label="Tool categories">
       <button
         v-for="cat in categories"
@@ -34,11 +40,12 @@ function categoryIcon(cat) {
         type="button"
         class="category-btn"
         :class="{ active: selectedCategory === cat }"
+        :title="collapsed ? cat : undefined"
         draggable="false"
         @click="emit('select-category', cat)"
       >
         <span class="category-icon" aria-hidden="true">{{ categoryIcon(cat) }}</span>
-        {{ cat }}
+        <span v-if="!collapsed" class="category-name">{{ cat }}</span>
       </button>
     </nav>
     <ul class="tools" role="list">
@@ -47,16 +54,16 @@ function categoryIcon(cat) {
           :to="{ name: 'tool', params: { slug: tool.id } }"
           class="tool-btn"
           :class="{ active: selectedTool?.id === tool.id }"
-          :title="tool.description || tool.name"
+          :title="tool.name + (tool.description ? ' — ' + tool.description : '')"
           draggable="false"
         >
-          <span v-if="tool.icon" class="tool-icon" aria-hidden="true">{{ tool.icon }}</span>
-          <span class="tool-name">{{ tool.name }}</span>
-          <span v-if="tool.description" class="tool-desc">{{ tool.description }}</span>
+          <span class="tool-icon" aria-hidden="true">{{ toolDisplayIcon(tool) }}</span>
+          <span v-if="!collapsed" class="tool-name">{{ tool.name }}</span>
+          <span v-if="!collapsed && tool.description" class="tool-desc">{{ tool.description }}</span>
         </router-link>
       </li>
     </ul>
-    <p v-if="tools.length === 0" class="no-results">No tools match your search.</p>
+    <p v-if="!collapsed && tools.length === 0" class="no-results">No tools match your search.</p>
   </div>
 </template>
 
@@ -79,6 +86,14 @@ function categoryIcon(cat) {
   user-drag: none;
 }
 
+.tool-list.collapsed .categories {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  padding: 0 0.4rem 0.5rem;
+  align-items: center;
+}
+
 .category-btn {
   padding: 0.35rem 0.6rem;
   background: var(--bg);
@@ -88,6 +103,15 @@ function categoryIcon(cat) {
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
+}
+
+.tool-list.collapsed .category-btn {
+  padding: 0.4rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .category-btn:hover {
@@ -101,6 +125,10 @@ function categoryIcon(cat) {
   font-size: 0.95em;
   line-height: 1;
   vertical-align: middle;
+}
+
+.tool-list.collapsed .category-icon {
+  margin-right: 0;
 }
 
 .category-btn.active {
@@ -133,6 +161,14 @@ function categoryIcon(cat) {
   text-decoration: none;
 }
 
+.tool-list.collapsed .tool-btn {
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left-width: 3px;
+}
+
 .tool-btn:hover {
   background: rgba(255, 255, 255, 0.04);
 }
@@ -148,6 +184,11 @@ function categoryIcon(cat) {
   font-size: 1rem;
   line-height: 1;
   vertical-align: middle;
+}
+
+.tool-list.collapsed .tool-icon {
+  margin-right: 0;
+  font-size: 1.1rem;
 }
 
 .tool-name {

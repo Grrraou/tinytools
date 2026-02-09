@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T23:02:33.803Z",
+  "generatedAt": "2026-02-09T23:15:22.751Z",
   "categories": [
     "Text",
     "Encoding",
@@ -9,7 +9,8 @@
     "Units & Numbers",
     "Finance",
     "Time & Date",
-    "Reference"
+    "Reference",
+    "External"
   ],
   "tools": [
     {
@@ -740,6 +741,27 @@
       ],
       "order": 5,
       "icon": "⌨️"
+    },
+    {
+      "id": "latency-poison",
+      "path": "tools/latency-poison/",
+      "name": "Latency Poison",
+      "category": "External",
+      "categories": [
+        "External"
+      ],
+      "description": "Learn about the Latency Poison concept from RootSolve — external resource with a direct link to the site.",
+      "keywords": [
+        "latency",
+        "poison",
+        "rootsolve",
+        "external",
+        "link",
+        "performance",
+        "network"
+      ],
+      "order": 1,
+      "icon": "🔗"
     }
   ]
 }
