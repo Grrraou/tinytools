@@ -17,6 +17,7 @@ const CATEGORY_ORDER = [
   'Web & APIs',
   'CSS & Design',
   'Units & Numbers',
+  'Finance',
   'Time & Date',
   'Reference',
   'Other',

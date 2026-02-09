@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T21:43:18.506Z",
+  "generatedAt": "2026-02-09T22:02:22.154Z",
   "categories": [
     "Text",
     "Encoding",
@@ -7,6 +7,7 @@
     "Web & APIs",
     "CSS & Design",
     "Units & Numbers",
+    "Finance",
     "Time & Date",
     "Reference"
   ],
@@ -500,6 +501,29 @@
       ],
       "order": 11,
       "icon": "%"
+    },
+    {
+      "id": "finance-calculator",
+      "path": "tools/finance-calculator/",
+      "name": "Finance calculator",
+      "category": "Finance",
+      "categories": [
+        "Finance"
+      ],
+      "description": "Inflation impact, compound & simple interest, loan payment, Rule of 72, future/present value, and more. Browser-only, no backend.",
+      "keywords": [
+        "finance",
+        "inflation",
+        "compound interest",
+        "loan",
+        "PMT",
+        "Rule of 72",
+        "FV",
+        "PV",
+        "savings"
+      ],
+      "order": 1,
+      "icon": "💰"
     },
     {
       "id": "time-converter",

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance calculator</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #f0f1f3; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    .note { font-size: 0.85rem; color: #555; margin: 0 0 1rem 0; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .calc-block { background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; transition: border-color 0.2s, box-shadow 0.2s; }
+    .calc-block.focused { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25); }
+    .calc-block h2 { margin: 0 0 0.5rem 0; font-size: 0.95rem; color: #333; }
+    .examples { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.75rem; padding: 0.4rem 0; border-bottom: 1px dashed #e5e7eb; }
+    .examples span { display: block; margin-bottom: 0.2rem; }
+    .examples span:last-child { margin-bottom: 0; }
+    label { display: block; margin-bottom: 0.2rem; font-weight: 500; font-size: 0.9rem; }
+    .row { margin-bottom: 0.6rem; }
+    .row:last-of-type { margin-bottom: 0; }
+    input[type="text"] { padding: 0.4rem 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; width: 100%; max-width: 10rem; font-family: ui-monospace, monospace; }
+    input:focus { outline: none; border-color: #1a73e8; }
+    .input-row { display: flex; align-items: baseline; gap: 0.35rem; flex-wrap: wrap; }
+    .result { margin-top: 0.6rem; font-size: 0.9rem; font-family: ui-monospace, monospace; font-weight: 500; color: #1a73e8; line-height: 1.4; }
+    .result.empty { color: #9ca3af; font-weight: normal; }
+    .result.error { color: #c00; }
+    .formula { font-size: 0.72rem; color: #6b7280; margin-top: 0.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Finance calculator</h1>
+  <p class="note">Inflation impact, compound &amp; simple interest, loan payment (PMT), Rule of 72, future/present value, and more. All calculations run in your browser; no data is sent anywhere.</p>
+
+  <div class="card-grid">
+    <div class="calc-block" id="card-inflation" data-focus="inflation">
+      <h2>1. Inflation impact</h2>
+      <p class="examples"><span>e.g. $10,000 at 3% for 10 years → purchasing power today ≈ $7,441</span></p>
+      <div class="row">
+        <label for="infAmount">Amount</label>
+        <div class="input-row"><input type="text" id="infAmount" placeholder="e.g. 10000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="infRate">Annual inflation (%)</label>
+        <div class="input-row"><input type="text" id="infRate" placeholder="e.g. 3" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="infYears">Years</label>
+        <div class="input-row"><input type="text" id="infYears" placeholder="e.g. 10" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultInflation">—</p>
+      <p class="formula" id="formulaInflation">Purchasing power today = amount ÷ (1 + r)<sup>t</sup></p>
+    </div>
+
+    <div class="calc-block" id="card-compound" data-focus="compound">
+      <h2>2. Compound interest</h2>
+      <p class="examples"><span>e.g. $1,000 at 5%/year for 10 years → ≈ $1,629</span></p>
+      <div class="row">
+        <label for="compPrincipal">Principal</label>
+        <div class="input-row"><input type="text" id="compPrincipal" placeholder="e.g. 1000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="compRate">Annual rate (%)</label>
+        <div class="input-row"><input type="text" id="compRate" placeholder="e.g. 5" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="compYears">Years</label>
+        <div class="input-row"><input type="text" id="compYears" placeholder="e.g. 10" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="compPerYear">Compounds per year</label>
+        <div class="input-row"><input type="text" id="compPerYear" placeholder="1" inputmode="numeric" /></div>
+      </div>
+      <p class="result" id="resultCompound">—</p>
+      <p class="formula" id="formulaCompound">FV = P × (1 + r/n)<sup>n×t</sup></p>
+    </div>
+
+    <div class="calc-block" id="card-simple" data-focus="simple">
+      <h2>3. Simple interest</h2>
+      <p class="examples"><span>e.g. $1,000 at 4% for 5 years → interest $200, total $1,200</span></p>
+      <div class="row">
+        <label for="simpPrincipal">Principal</label>
+        <div class="input-row"><input type="text" id="simpPrincipal" placeholder="e.g. 1000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="simpRate">Annual rate (%)</label>
+        <div class="input-row"><input type="text" id="simpRate" placeholder="e.g. 4" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="simpYears">Years</label>
+        <div class="input-row"><input type="text" id="simpYears" placeholder="e.g. 5" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultSimple">—</p>
+      <p class="formula" id="formulaSimple">Interest = P × r × t; Total = P + Interest</p>
+    </div>
+
+    <div class="calc-block" id="card-loan" data-focus="loan">
+      <h2>4. Loan payment (PMT)</h2>
+      <p class="examples"><span>e.g. $200,000 at 4% for 25 years → ≈ $1,056/month</span></p>
+      <div class="row">
+        <label for="loanPrincipal">Principal</label>
+        <div class="input-row"><input type="text" id="loanPrincipal" placeholder="e.g. 200000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="loanRate">Annual rate (%)</label>
+        <div class="input-row"><input type="text" id="loanRate" placeholder="e.g. 4" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="loanYears">Term (years)</label>
+        <div class="input-row"><input type="text" id="loanYears" placeholder="e.g. 25" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultLoan">—</p>
+      <p class="formula" id="formulaLoan">PMT = P × [r(1+r)<sup>n</sup>] ÷ [(1+r)<sup>n</sup> − 1], r = monthly rate</p>
+    </div>
+
+    <div class="calc-block" id="card-rule72" data-focus="rule72">
+      <h2>5. Rule of 72</h2>
+      <p class="examples"><span>e.g. 6% → ~12 years to double; 8% → ~9 years</span></p>
+      <div class="row">
+        <label for="rule72Rate">Annual growth rate (%)</label>
+        <div class="input-row"><input type="text" id="rule72Rate" placeholder="e.g. 6" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultRule72">—</p>
+      <p class="formula" id="formulaRule72">Years to double ≈ 72 ÷ rate</p>
+    </div>
+
+    <div class="calc-block" id="card-fv" data-focus="fv">
+      <h2>6. Future value (lump sum)</h2>
+      <p class="examples"><span>e.g. $5,000 at 7% for 20 years → ≈ $19,348</span></p>
+      <div class="row">
+        <label for="fvPv">Present value</label>
+        <div class="input-row"><input type="text" id="fvPv" placeholder="e.g. 5000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="fvRate">Annual rate (%)</label>
+        <div class="input-row"><input type="text" id="fvRate" placeholder="e.g. 7" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="fvYears">Years</label>
+        <div class="input-row"><input type="text" id="fvYears" placeholder="e.g. 20" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultFv">—</p>
+      <p class="formula" id="formulaFv">FV = PV × (1 + r)<sup>t</sup></p>
+    </div>
+
+    <div class="calc-block" id="card-pv" data-focus="pv">
+      <h2>7. Present value</h2>
+      <p class="examples"><span>e.g. Need $20,000 in 10 years at 5% → invest ≈ $12,278 today</span></p>
+      <div class="row">
+        <label for="pvFv">Future value</label>
+        <div class="input-row"><input type="text" id="pvFv" placeholder="e.g. 20000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="pvRate">Annual rate (%)</label>
+        <div class="input-row"><input type="text" id="pvRate" placeholder="e.g. 5" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="pvYears">Years</label>
+        <div class="input-row"><input type="text" id="pvYears" placeholder="e.g. 10" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultPv">—</p>
+      <p class="formula" id="formulaPv">PV = FV ÷ (1 + r)<sup>t</sup></p>
+    </div>
+
+    <div class="calc-block" id="card-years" data-focus="years">
+      <h2>8. Years to reach goal</h2>
+      <p class="examples"><span>e.g. $10k at 6% to reach $20k → ≈ 11.9 years</span></p>
+      <div class="row">
+        <label for="yPv">Current amount (PV)</label>
+        <div class="input-row"><input type="text" id="yPv" placeholder="e.g. 10000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="yFv">Target amount (FV)</label>
+        <div class="input-row"><input type="text" id="yFv" placeholder="e.g. 20000" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="yRate">Annual rate (%)</label>
+        <div class="input-row"><input type="text" id="yRate" placeholder="e.g. 6" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultYears">—</p>
+      <p class="formula" id="formulaYears">t = ln(FV/PV) ÷ ln(1 + r)</p>
+    </div>
+
+    <div class="calc-block" id="card-roi" data-focus="roi">
+      <h2>9. ROI (return on investment)</h2>
+      <p class="examples"><span>e.g. Invested $500, now $600 → 20% ROI</span></p>
+      <div class="row">
+        <label for="roiCost">Amount invested</label>
+        <div class="input-row"><input type="text" id="roiCost" placeholder="e.g. 500" inputmode="decimal" /></div>
+      </div>
+      <div class="row">
+        <label for="roiGain">Current / final value</label>
+        <div class="input-row"><input type="text" id="roiGain" placeholder="e.g. 600" inputmode="decimal" /></div>
+      </div>
+      <p class="result" id="resultRoi">—</p>
+      <p class="formula" id="formulaRoi">ROI % = ((gain − cost) ÷ cost) × 100</p>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  function parseNum(s) {
+    if (s == null || (s = String(s).trim()) === '') return NaN;
+    var n = parseFloat(s.replace(/,/g, ''));
+    return isFinite(n) ? n : NaN;
+  }
+
+  var FOCUS_KEYS = ['inflation', 'compound', 'simple', 'loan', 'rule72', 'fv', 'pv', 'years', 'roi'];
+  var currentFocus = null;
+
+  function setFocus(key) {
+    currentFocus = key;
+    document.querySelectorAll('.calc-block').forEach(function (card) {
+      card.classList.toggle('focused', card.getAttribute('data-focus') === key);
+    });
+    syncUrl();
+  }
+
+  function syncUrl() {
+    var params = {};
+    ['infAmount','infRate','infYears','compPrincipal','compRate','compYears','compPerYear',
+     'simpPrincipal','simpRate','simpYears','loanPrincipal','loanRate','loanYears',
+     'rule72Rate','fvPv','fvRate','fvYears','pvFv','pvRate','pvYears',
+     'yPv','yFv','yRate','roiCost','roiGain'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.value.trim()) params[id] = el.value.trim();
+    });
+    if (currentFocus) params.focus = currentFocus;
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'helpers-set-query', query: params }, '*');
+    }
+  }
+
+  function runInflation() {
+    var amount = parseNum(document.getElementById('infAmount').value);
+    var rate = parseNum(document.getElementById('infRate').value);
+    var years = parseNum(document.getElementById('infYears').value);
+    var r = document.getElementById('resultInflation');
+    var f = document.getElementById('formulaInflation');
+    if ([amount, rate, years].some(isNaN) || rate < 0 || years < 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var factor = Math.pow(1 + rate / 100, years);
+    var futureNominal = amount * factor;
+    var purchasingPowerToday = amount / factor;
+    r.textContent = 'In ' + years + ' years: same amount would buy what \u2248 ' + purchasingPowerToday.toFixed(2) + ' buys today. (Nominal future value would be \u2248 ' + futureNominal.toFixed(2) + '.)';
+    r.className = 'result';
+    f.textContent = amount + ' \u00F7 (1 + ' + rate + '%)\u207F = ' + purchasingPowerToday.toFixed(2) + ' (purchasing power today)';
+  }
+
+  function runCompound() {
+    var P = parseNum(document.getElementById('compPrincipal').value);
+    var rate = parseNum(document.getElementById('compRate').value);
+    var years = parseNum(document.getElementById('compYears').value);
+    var n = parseNum(document.getElementById('compPerYear').value);
+    var r = document.getElementById('resultCompound');
+    var f = document.getElementById('formulaCompound');
+    if (isNaN(n) || n < 1) n = 1;
+    if ([P, rate, years].some(isNaN) || years < 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var FV = P * Math.pow(1 + (rate / 100) / n, n * years);
+    var interest = FV - P;
+    r.textContent = 'Future value \u2248 ' + FV.toFixed(2) + ' (interest \u2248 ' + interest.toFixed(2) + ')';
+    r.className = 'result';
+    f.textContent = FV.toFixed(2) + ' = ' + P + ' \u00D7 (1 + ' + (rate / 100 / n) + ')\u207F';
+  }
+
+  function runSimple() {
+    var P = parseNum(document.getElementById('simpPrincipal').value);
+    var rate = parseNum(document.getElementById('simpRate').value);
+    var years = parseNum(document.getElementById('simpYears').value);
+    var r = document.getElementById('resultSimple');
+    if ([P, rate, years].some(isNaN) || years < 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var I = P * (rate / 100) * years;
+    var total = P + I;
+    r.textContent = 'Interest = ' + I.toFixed(2) + ', Total = ' + total.toFixed(2);
+    r.className = 'result';
+  }
+
+  function runLoan() {
+    var P = parseNum(document.getElementById('loanPrincipal').value);
+    var rate = parseNum(document.getElementById('loanRate').value);
+    var years = parseNum(document.getElementById('loanYears').value);
+    var r = document.getElementById('resultLoan');
+    if ([P, rate, years].some(isNaN) || P <= 0 || years <= 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var monthlyRate = rate / 100 / 12;
+    var n = years * 12;
+    var pmt = monthlyRate === 0 ? P / n : P * (monthlyRate * Math.pow(1 + monthlyRate, n)) / (Math.pow(1 + monthlyRate, n) - 1);
+    var total = pmt * n;
+    r.textContent = 'Monthly payment \u2248 ' + pmt.toFixed(2) + ' (total paid \u2248 ' + total.toFixed(2) + ')';
+    r.className = 'result';
+  }
+
+  function runRule72() {
+    var rate = parseNum(document.getElementById('rule72Rate').value);
+    var r = document.getElementById('resultRule72');
+    if (isNaN(rate) || rate <= 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var years = 72 / rate;
+    r.textContent = 'Years to double \u2248 ' + years.toFixed(1);
+    r.className = 'result';
+  }
+
+  function runFv() {
+    var pv = parseNum(document.getElementById('fvPv').value);
+    var rate = parseNum(document.getElementById('fvRate').value);
+    var years = parseNum(document.getElementById('fvYears').value);
+    var r = document.getElementById('resultFv');
+    if ([pv, rate, years].some(isNaN) || years < 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var fv = pv * Math.pow(1 + rate / 100, years);
+    r.textContent = 'Future value \u2248 ' + fv.toFixed(2);
+    r.className = 'result';
+  }
+
+  function runPv() {
+    var fv = parseNum(document.getElementById('pvFv').value);
+    var rate = parseNum(document.getElementById('pvRate').value);
+    var years = parseNum(document.getElementById('pvYears').value);
+    var r = document.getElementById('resultPv');
+    if ([fv, rate, years].some(isNaN) || years < 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var pv = fv / Math.pow(1 + rate / 100, years);
+    r.textContent = 'Present value (invest today) \u2248 ' + pv.toFixed(2);
+    r.className = 'result';
+  }
+
+  function runYears() {
+    var pv = parseNum(document.getElementById('yPv').value);
+    var fv = parseNum(document.getElementById('yFv').value);
+    var rate = parseNum(document.getElementById('yRate').value);
+    var r = document.getElementById('resultYears');
+    if ([pv, fv, rate].some(isNaN) || pv <= 0 || fv <= pv || rate <= 0) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    var t = Math.log(fv / pv) / Math.log(1 + rate / 100);
+    r.textContent = 'Years to reach goal \u2248 ' + t.toFixed(1);
+    r.className = 'result';
+  }
+
+  function runRoi() {
+    var cost = parseNum(document.getElementById('roiCost').value);
+    var gain = parseNum(document.getElementById('roiGain').value);
+    var r = document.getElementById('resultRoi');
+    if (isNaN(cost) || isNaN(gain)) {
+      r.textContent = '—';
+      r.className = 'result empty';
+      return;
+    }
+    if (cost === 0) {
+      r.textContent = 'Cost must be non-zero';
+      r.className = 'result error';
+      return;
+    }
+    var pct = ((gain - cost) / cost) * 100;
+    r.textContent = 'ROI = ' + pct.toFixed(1) + '% (' + (gain >= cost ? 'profit' : 'loss') + ' ' + Math.abs(gain - cost).toFixed(2) + ')';
+    r.className = 'result';
+  }
+
+  function run() {
+    runInflation();
+    runCompound();
+    runSimple();
+    runLoan();
+    runRule72();
+    runFv();
+    runPv();
+    runYears();
+    runRoi();
+    syncUrl();
+  }
+
+  var inputIds = [
+    ['infAmount','infRate','infYears'], ['compPrincipal','compRate','compYears','compPerYear'],
+    ['simpPrincipal','simpRate','simpYears'], ['loanPrincipal','loanRate','loanYears'],
+    ['rule72Rate'], ['fvPv','fvRate','fvYears'], ['pvFv','pvRate','pvYears'],
+    ['yPv','yFv','yRate'], ['roiCost','roiGain']
+  ];
+  inputIds.forEach(function (ids, i) {
+    var key = FOCUS_KEYS[i];
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', run);
+        el.addEventListener('change', run);
+        el.addEventListener('focus', function () { setFocus(key); });
+      }
+    });
+  });
+
+  (function initFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    function fill(id) {
+      var v = params.get(id);
+      if (v != null) {
+        var el = document.getElementById(id);
+        if (el) el.value = v;
+      }
+    }
+    ['infAmount','infRate','infYears','compPrincipal','compRate','compYears','compPerYear',
+     'simpPrincipal','simpRate','simpYears','loanPrincipal','loanRate','loanYears',
+     'rule72Rate','fvPv','fvRate','fvYears','pvFv','pvRate','pvYears',
+     'yPv','yFv','yRate','roiCost','roiGain'].forEach(fill);
+    run();
+    var focusParam = params.get('focus');
+    if (focusParam && FOCUS_KEYS.indexOf(focusParam) !== -1) {
+      setFocus(focusParam);
+      var card = document.querySelector('.calc-block[data-focus="' + focusParam + '"]');
+      if (card) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    }
+  })();
+})();
+  </script>
+</body>
+</html>
