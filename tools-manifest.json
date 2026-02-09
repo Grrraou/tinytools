@@ -1,8 +1,9 @@
 {
-  "generatedAt": "2026-02-09T13:03:39.049Z",
+  "generatedAt": "2026-02-09T21:43:18.506Z",
   "categories": [
     "Text",
     "Encoding",
+    "Cryptography",
     "Web & APIs",
     "CSS & Design",
     "Units & Numbers",
@@ -10,6 +11,29 @@
     "Reference"
   ],
   "tools": [
+    {
+      "id": "common-regex",
+      "path": "tools/common-regex/",
+      "name": "Common regex",
+      "category": "Text",
+      "categories": [
+        "Text",
+        "Reference"
+      ],
+      "description": "Reference of common regex patterns (email, URL, date, phone, hashtag, etc.). Search and open any pattern in Regex Tester with valid/invalid sample lines.",
+      "keywords": [
+        "regex",
+        "pattern",
+        "reference",
+        "email",
+        "url",
+        "phone",
+        "date",
+        "hashtag"
+      ],
+      "order": 1,
+      "icon": "📋"
+    },
     {
       "id": "extract-from-text",
       "path": "tools/extract-from-text/",
@@ -31,6 +55,27 @@
       ],
       "order": 1,
       "icon": "✂️"
+    },
+    {
+      "id": "regex-builder",
+      "path": "tools/regex-builder/",
+      "name": "Regex Builder",
+      "category": "Text",
+      "categories": [
+        "Text"
+      ],
+      "description": "Paste a substring and get a best-effort regex that matches it. Character classes, grouped repeats, escaped specials, optional anchors. Browser-only, deterministic.",
+      "keywords": [
+        "regex",
+        "pattern",
+        "builder",
+        "generate",
+        "substring",
+        "match",
+        "character class"
+      ],
+      "order": 1,
+      "icon": "〰️"
     },
     {
       "id": "unicode-search",
@@ -71,6 +116,27 @@
       ],
       "order": 2,
       "icon": "🔀"
+    },
+    {
+      "id": "regex-tester",
+      "path": "tools/regex-tester/",
+      "name": "Regex Tester",
+      "category": "Text",
+      "categories": [
+        "Text"
+      ],
+      "description": "Test regex patterns live: pattern, flags, test string. See highlights, match count, capture groups, validation errors. Explanation and regex syntax docs. Browser-only.",
+      "keywords": [
+        "regex",
+        "test",
+        "pattern",
+        "match",
+        "capture",
+        "highlight",
+        "validate"
+      ],
+      "order": 2,
+      "icon": "🔬"
     },
     {
       "id": "diff-checker",
@@ -169,6 +235,30 @@
       ],
       "order": 2,
       "icon": "🔗"
+    },
+    {
+      "id": "data-masking",
+      "path": "tools/data-masking/",
+      "name": "Text data masking",
+      "category": "Cryptography",
+      "categories": [
+        "Cryptography",
+        "Text"
+      ],
+      "description": "Mask emails, phones, URLs in text (e.g. j***@gmail.com). Reversible masking with a secret key. Runs locally — safe for AI and sharing.",
+      "keywords": [
+        "mask",
+        "redact",
+        "PII",
+        "email",
+        "phone",
+        "privacy",
+        "AI",
+        "reversible",
+        "obfuscate"
+      ],
+      "order": 1,
+      "icon": "🎭"
     },
     {
       "id": "json-formatter",

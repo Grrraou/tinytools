@@ -1,0 +1,1 @@
+{"name":"Regex Builder","description":"Paste a substring and get a best-effort regex that matches it. Character classes, grouped repeats, escaped specials, optional anchors. Browser-only, deterministic.","category":"Text","categories":["Text"],"keywords":["regex","pattern","builder","generate","substring","match","character class"],"order":1,"icon":"〰️"}

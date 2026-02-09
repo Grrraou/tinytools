@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regex Builder</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .row { margin-bottom: 1rem; }
+    textarea { width: 100%; min-height: 100px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    textarea:focus { outline: none; border-color: #1a73e8; }
+    .strictness-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .strictness-row label { margin-bottom: 0; font-weight: normal; }
+    .output-wrap { margin-top: 1rem; }
+    .output-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+    .output-row .pattern { font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #f8f9fa; flex: 1; min-width: 12rem; word-break: break-all; }
+    .output-row .copy-btn { padding: 0.5rem 0.75rem; font: inherit; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .output-row .copy-btn:hover { background: #e8e8e8; }
+    .output-row .copy-btn.copied { background: #0a7; color: #fff; border-color: #0a7; }
+    .output-row .copy-btn#btnToTester { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .output-row .copy-btn#btnToTester:hover { background: #1557b0; }
+    .note { font-size: 0.85rem; color: #555; margin-top: 0.25rem; }
+    .test-row { margin-top: 1rem; }
+    .test-row textarea { min-height: 60px; }
+    .match-ok { color: #0a7; }
+    .match-fail { color: #c00; }
+    .local-banner { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 1rem; font-size: 0.88rem; color: #2e7d32; }
+    .local-banner strong { display: block; margin-bottom: 0.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Regex Builder</h1>
+  <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #555;">Paste or type a sample: <strong>one or more lines</strong>. The tool generates a regex that matches <strong>each line separately</strong> (line 1 AND line 2 AND line 3 …). Use the <code>m</code> (multiline) flag so <code>^</code> and <code>$</code> apply per line.</p>
+
+  <div class="local-banner" role="status">
+    <strong>Runs entirely in your browser</strong>
+    No data is sent anywhere. Generation is deterministic and fast.
+  </div>
+
+  <div class="row how-it-works">
+    <strong>How it works</strong>
+    <p class="note" style="margin: 0.25rem 0 0 0;">The sample is split by lines. For <em>each line</em> we build a sub-pattern (literal or with character classes, depending on strictness). The final regex is <code>^(P1)$|^(P2)$|^(P3)$</code> … so it matches line 1 <strong>or</strong> line 2 <strong>or</strong> line 3 (each as a whole). With the <code>m</code> flag, <code>^</code> and <code>$</code> are line boundaries. If you add an <strong>exclusion list</strong>, the regex uses a negative lookahead so that <strong>none</strong> of those lines match — i.e. it matches sample lines only and rejects exclusion lines.</p>
+  </div>
+
+  <div class="row">
+    <label for="input">Sample (lines that must match)</label>
+    <textarea id="input" placeholder="e.g. one line: 2024-01-15&#10;or several:&#10;user_1&#10;user_2&#10;admin" rows="4"></textarea>
+  </div>
+
+  <div class="row">
+    <label for="exclusion">Exclusion list (lines that must NOT match)</label>
+    <textarea id="exclusion" placeholder="One line per entry. The regex will not match any of these lines." rows="3"></textarea>
+    <p class="note">Optional. Lines listed here are excluded via a negative lookahead; the regex matches sample lines but never exclusion lines.</p>
+  </div>
+
+  <div class="row">
+    <label>Options</label>
+    <div class="strictness-row">
+      <label><input type="checkbox" id="anchorToLine" checked /> Anchor to line (<code>^</code>…<code>$</code>)</label>
+    </div>
+    <p class="note">When checked, the pattern matches a full line only (use with <code>m</code> flag). When unchecked, the pattern matches the shape anywhere — no start/end anchors.</p>
+  </div>
+
+  <div class="row">
+    <label>Strictness</label>
+    <div class="strictness-row">
+      <label><input type="radio" name="strictness" value="loose" /> Loose</label>
+      <label><input type="radio" name="strictness" value="medium" checked /> Medium</label>
+      <label><input type="radio" name="strictness" value="strict" /> Strict</label>
+    </div>
+    <p class="note">Per-line pattern: <strong>Loose</strong> = escape special chars only. <strong>Medium</strong> / <strong>Strict</strong> = character classes and grouped repeats.</p>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-row">
+      <label for="output">Generated pattern</label>
+      <input type="text" id="output" class="pattern" readonly placeholder="Generated regex will appear here" aria-label="Generated regex pattern" />
+      <button type="button" class="copy-btn" id="copyBtn">Copy</button>
+      <button type="button" class="copy-btn" id="btnToTester" title="Open Regex Tester with this pattern" disabled>Test in Regex Tester</button>
+    </div>
+    <p class="note" id="patternNote"></p>
+  </div>
+
+  <div class="test-row row">
+    <label for="testInput">Test against (optional)</label>
+    <textarea id="testInput" placeholder="Paste text here to see if the pattern matches…" rows="3"></textarea>
+    <p class="note" id="testResult"></p>
+  </div>
+
+  <script>
+(function () {
+  var SPECIAL = /[.*+?^${}()|[\]\\]/g;
+  var input = document.getElementById('input');
+  var exclusionEl = document.getElementById('exclusion');
+  var output = document.getElementById('output');
+  var copyBtn = document.getElementById('copyBtn');
+  var patternNote = document.getElementById('patternNote');
+  var testInput = document.getElementById('testInput');
+  var testResult = document.getElementById('testResult');
+
+  function getStrictness() {
+    var r = document.querySelector('input[name="strictness"]:checked');
+    return r ? r.value : 'medium';
+  }
+
+  function classify(c) {
+    var code = c.charCodeAt(0);
+    if (code >= 48 && code <= 57) return 'd';
+    if (code >= 97 && code <= 122) return 'L';
+    if (code >= 65 && code <= 90) return 'L';
+    if (c === ' ' || c === '\t' || c === '\n' || c === '\r' || c === '\f' || c === '\v') return 's';
+    if (c === '_') return 'w';
+    return 'x';
+  }
+
+  function looseBuild(str) {
+    return str.replace(SPECIAL, '\\$&');
+  }
+
+  function mediumBuild(str) {
+    if (str.length === 0) return '';
+    var out = [];
+    var i = 0;
+    while (i < str.length) {
+      var c = str[i];
+      var cl = classify(c);
+      var runStart = i;
+      while (i < str.length && classify(str[i]) === cl) i++;
+      var run = str.slice(runStart, i);
+      if (cl === 'd') {
+        out.push('\\d' + (run.length > 1 ? '+' : ''));
+      } else if (cl === 'L') {
+        if (/^[a-z]+$/.test(run)) out.push('[a-z]' + (run.length > 1 ? '+' : ''));
+        else if (/^[A-Z]+$/.test(run)) out.push('[A-Z]' + (run.length > 1 ? '+' : ''));
+        else out.push('[A-Za-z]' + (run.length > 1 ? '+' : ''));
+      } else if (cl === 's') {
+        out.push('\\s' + (run.length > 1 ? '+' : ''));
+      } else if (cl === 'w') {
+        out.push('_' + (run.length > 1 ? '+' : ''));
+      } else {
+        out.push(run.replace(SPECIAL, '\\$&'));
+      }
+    }
+    return out.join('');
+  }
+
+  function build() {
+    var str = input.value;
+    var strictness = getStrictness();
+    if (str.length === 0) {
+      output.value = '';
+      patternNote.textContent = '';
+      testResult.textContent = '';
+      document.getElementById('btnToTester').disabled = true;
+      return;
+    }
+    var lines = str.split(/\r?\n/);
+    var parts = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var middle = strictness === 'loose' ? looseBuild(line) : mediumBuild(line);
+      parts.push('(?:' + middle + ')');
+    }
+    var anchor = document.getElementById('anchorToLine').checked;
+    var exclusionStr = (exclusionEl.value || '').trim();
+    var lookahead = '';
+    var exclusionCount = 0;
+    if (anchor && exclusionStr.length > 0) {
+      var exclusionLines = exclusionStr.split(/\r?\n/);
+      exclusionCount = exclusionLines.length;
+      var exclusionParts = [];
+      for (var j = 0; j < exclusionLines.length; j++) {
+        var exLine = exclusionLines[j];
+        var exMiddle = strictness === 'loose' ? looseBuild(exLine) : mediumBuild(exLine);
+        exclusionParts.push('(?:' + exMiddle + ')');
+      }
+      var exclusionPattern = '^' + exclusionParts.join('$|^') + '$';
+      lookahead = '(?!' + exclusionPattern + ')';
+    }
+    var pattern;
+    if (anchor) {
+      pattern = parts.map(function (p) {
+        return '^' + lookahead + p + '$';
+      }).join('|');
+    } else {
+      pattern = parts.join('|');
+    }
+    output.value = pattern;
+    var lineWord = lines.length === 1 ? 'line' : 'lines';
+    var note = 'Matches each of the ' + lines.length + ' ' + lineWord + ' separately.';
+    if (anchor && exclusionCount > 0) note += ' Excludes ' + exclusionCount + ' line(s).';
+    if (anchor) note += " Use flags 'gm' in Regex Tester.";
+    else note += " Use flag 'g' (no line anchors).";
+    patternNote.textContent = note;
+    document.getElementById('btnToTester').disabled = false;
+    runTest(pattern);
+  }
+
+  function runTest(pattern) {
+    var text = testInput.value;
+    if (!pattern || text.length === 0) {
+      testResult.textContent = '';
+      return;
+    }
+    try {
+      var flags = document.getElementById('anchorToLine').checked ? 'gm' : 'g';
+      var re = new RegExp(pattern, flags);
+      var matches = text.match(re);
+      var count = matches ? matches.length : 0;
+      testResult.textContent = count === 0 ? 'No matches.' : count + ' match(es).';
+      testResult.className = 'note ' + (count > 0 ? 'match-ok' : 'match-fail');
+    } catch (e) {
+      testResult.textContent = 'Invalid pattern: ' + (e.message || e);
+      testResult.className = 'note match-fail';
+    }
+  }
+
+  function copyPattern() {
+    var p = output.value;
+    if (!p) return;
+    navigator.clipboard.writeText(p).then(function () {
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  input.addEventListener('input', build);
+  input.addEventListener('change', build);
+  exclusionEl.addEventListener('input', build);
+  exclusionEl.addEventListener('change', build);
+  testInput.addEventListener('input', function () { runTest(output.value); });
+  testInput.addEventListener('change', function () { runTest(output.value); });
+  document.getElementById('anchorToLine').addEventListener('change', build);
+  document.querySelectorAll('input[name="strictness"]').forEach(function (el) {
+    el.addEventListener('change', build);
+  });
+  copyBtn.addEventListener('click', copyPattern);
+
+  document.getElementById('btnToTester').addEventListener('click', function () {
+    var p = output.value;
+    if (!p) return;
+    var sample = (input.value || '').trim();
+    var exclusion = (exclusionEl.value || '').trim();
+    var flags = document.getElementById('anchorToLine').checked ? 'gm' : 'g';
+    var q = 'pattern=' + encodeURIComponent(p) + '&flags=' + encodeURIComponent(flags);
+    if (exclusion.length > 0) q += '&exclusionList=' + encodeURIComponent(exclusion);
+    var testString = sample;
+    if (exclusion.length > 0) testString += (testString ? '\n\n' : '') + '--- exclusion (must not match) ---\n' + exclusion;
+    if (testString.length > 0) q += '&testString=' + encodeURIComponent(testString);
+    try {
+      var top = window.top;
+      var pathname = top.location.pathname || '';
+      var base = pathname.replace(/[^/]+$/, 'regex-tester');
+      top.location = top.location.origin + base + '?' + q;
+    } catch (e) {
+      var a = document.createElement('a');
+      a.href = '/t/regex-tester?' + q;
+      a.target = '_top';
+      a.rel = 'noopener';
+      a.click();
+    }
+  });
+})();
+  </script>
+</body>
+</html>

@@ -11,6 +11,7 @@ const emit = defineEmits(['select-category']);
 const categoryIcons = {
   'Text': '📝',
   'Encoding': '🔐',
+  'Cryptography': '🔑',
   'Web & APIs': '🌐',
   'CSS & Design': '🎨',
   'Units & Numbers': '🔢',

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Text data masking</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem 0; color: #333; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .row { margin-bottom: 1rem; }
+    textarea { width: 100%; min-height: 120px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    textarea:focus { outline: none; border-color: #1a73e8; }
+    input[type="text"], input[type="password"] { width: 100%; max-width: 24rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.9rem; }
+    input:focus { outline: none; border-color: #1a73e8; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .btn-row button { padding: 0.5rem 0.75rem; font: inherit; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .btn-row button:hover { background: #e8e8e8; }
+    .btn-row button.primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .btn-row button.primary:hover { background: #1557b0; }
+    .output-wrap { margin-top: 1rem; }
+    .output-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem; }
+    .output-head label { margin-bottom: 0; }
+    .output-head .copy-btn { padding: 0.25rem 0.5rem; font-size: 0.85rem; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .output-head .copy-btn:hover { background: #e8e8e8; }
+    .output-head .copy-btn.copied { background: #0a7; color: #fff; border-color: #0a7; }
+    #output { width: 100%; min-height: 100px; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #f8f9fa; resize: vertical; }
+    #output:focus { outline: none; border-color: #1a73e8; }
+    .note { font-size: 0.85rem; color: #555; margin-top: 0.25rem; }
+    .error { color: #c00; font-size: 0.9rem; margin-top: 0.25rem; }
+    .search-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+    .search-row label { margin-bottom: 0; }
+    .search-row input { max-width: 16rem; }
+    .count { font-size: 0.85rem; color: #666; }
+    .local-banner { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 1rem; font-size: 0.88rem; color: #2e7d32; }
+    .local-banner strong { display: block; margin-bottom: 0.2rem; }
+    .intensity-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .intensity-row label { margin-bottom: 0; margin-right: 0.25rem; }
+    .key-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .key-row input { max-width: 20rem; }
+    .key-row .show-key-label { margin-bottom: 0; font-weight: normal; cursor: pointer; }
+    .key-row .show-key-label input { margin-right: 0.35rem; }
+    .key-row button.copied { background: #0a7; color: #fff; border-color: #0a7; }
+    .key-option-label { margin-bottom: 0; margin-right: 0.35rem; font-weight: 500; font-size: 0.9rem; }
+    .key-select { padding: 0.35rem 0.5rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; min-width: 10rem; }
+    .key-name-input { padding: 0.35rem 0.5rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; width: 10rem; max-width: 100%; }
+    .data-mask-opts { margin-bottom: 0.75rem; }
+    .data-mask-opts label { display: inline-flex; align-items: center; margin-right: 1rem; margin-bottom: 0.35rem; font-weight: normal; }
+    .data-mask-opts input[type="checkbox"] { margin-right: 0.35rem; }
+    .data-mask-opts .saved-regex-group { margin-top: 0.5rem; }
+    .data-mask-opts .saved-regex-group label { display: inline-flex; margin-right: 0.75rem; }
+    .regex-one-way-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .regex-one-way-row input[type="text"] { max-width: 20rem; }
+    .regex-one-way-row .regex-flags { width: 4rem; }
+  </style>
+</head>
+<body>
+  <h1>Text data masking</h1>
+  <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #555;">Mask emails, phones, URLs (e.g. <code>john.doe@gmail.com</code> → <code>j***@gmail.com</code>). Optionally use reversible masking with a secret key to restore data later.</p>
+
+  <div class="local-banner" role="status">
+    <strong>Runs entirely in your browser</strong>
+    Nothing is sent to any server. All masking and unmasking happens on your device. Use it to hide personal data before pasting text into AI chatbots, sharing with others, or logging — so you keep context without exposing PII.
+  </div>
+
+  <div class="row">
+    <label for="input">Text</label>
+    <textarea id="input" placeholder="Paste or type text here (emails, phones, URLs)…" rows="6"></textarea>
+  </div>
+
+  <h2>One-way masking (irreversible)</h2>
+  <p class="note">Replace matches with masked versions. Cannot be undone — use when you don’t need the original back.</p>
+  <div class="row">
+    <label>Obfuscation intensity</label>
+    <div class="intensity-row">
+      <label><input type="radio" name="intensity" value="low" checked /> Low</label>
+      <label><input type="radio" name="intensity" value="medium" /> Medium</label>
+      <label><input type="radio" name="intensity" value="high" /> High</label>
+    </div>
+    <p class="note">Low: show first 1–2 chars (e.g. j***@gmail.com). Medium: first char + last segment. High: full redaction [EMAIL].</p>
+  </div>
+  <div class="btn-row">
+    <button type="button" id="btnMaskEmail">Mask emails</button>
+    <button type="button" id="btnMaskPhone">Mask phones</button>
+    <button type="button" id="btnMaskUrl">Mask URLs</button>
+    <button type="button" id="btnMaskAll" class="primary">Mask all</button>
+  </div>
+  <div class="row">
+    <label>Mask with regex</label>
+    <div class="regex-one-way-row">
+      <input type="text" id="regexPatternInput" placeholder="Pattern (e.g. \d{3}-\d{2}-\d{4})" />
+      <input type="text" id="regexFlagsInput" class="regex-flags" placeholder="Flags" value="g" title="e.g. g, gi" />
+      <span>or use saved:</span>
+      <select id="regexSavedSelect" aria-label="Use saved regex">
+        <option value="">— None (use pattern above) —</option>
+      </select>
+      <button type="button" id="btnMaskRegex">Mask with regex</button>
+    </div>
+  </div>
+
+  <h2>Reversible masking (with secret key)</h2>
+  <p class="note">Encrypts matches so you can unmask later with the same key. <strong>Store the key securely</strong> — without it, data cannot be recovered.</p>
+  <div class="row">
+    <label>Data to mask (select which types to encrypt)</label>
+    <div class="data-mask-opts">
+      <label><input type="checkbox" id="optEmail" checked /> Emails</label>
+      <label><input type="checkbox" id="optPhone" checked /> Phones</label>
+      <label><input type="checkbox" id="optUrl" checked /> URLs</label>
+      <div class="saved-regex-group">
+        <span class="key-option-label">Saved regexes:</span>
+        <div id="savedRegexCheckboxes"></div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <label for="secretKey">Secret key</label>
+    <div class="key-row">
+      <input type="password" id="secretKey" placeholder="Enter or generate a key" autocomplete="off" />
+      <button type="button" id="btnGenKey">Generate key</button>
+      <button type="button" id="btnCopyKey">Copy key</button>
+      <label class="show-key-label"><input type="checkbox" id="showKey" aria-label="Show key" /> Show key</label>
+    </div>
+    <p class="note">Load a saved key below or save the current key with a name. Use the <strong>Keys</strong> manager (header) to view, copy, or delete any stored key.</p>
+    <div class="key-row" style="margin-top: 0.5rem;">
+      <label for="loadKeySelect" class="key-option-label">Load saved key</label>
+      <select id="loadKeySelect" class="key-select" aria-label="Load saved key">
+        <option value="">— None —</option>
+      </select>
+      <button type="button" id="btnLoadKey">Load</button>
+    </div>
+    <div class="key-row" style="margin-top: 0.35rem;">
+      <label for="saveKeyName" class="key-option-label">Save as name</label>
+      <input type="text" id="saveKeyName" placeholder="e.g. work, personal" class="key-name-input" />
+      <button type="button" id="btnSaveKey">Remember key</button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button type="button" id="btnRevMask">Mask with key</button>
+    <button type="button" id="btnRevUnmask">Unmask with key</button>
+  </div>
+  <p id="revError" class="error" style="display: none;"></p>
+
+  <div class="output-wrap">
+    <div class="output-head">
+      <label for="output">Result</label>
+      <span class="count" id="resultCount"></span>
+      <div class="search-row" style="margin-left: auto;">
+        <label for="searchOutput">Search in result</label>
+        <input type="text" id="searchOutput" placeholder="Filter…" aria-label="Filter result" />
+      </div>
+      <button type="button" class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <textarea id="output" readonly placeholder="Masked or unmasked text will appear here…"></textarea>
+  </div>
+
+  <script>
+(function () {
+  var input = document.getElementById('input');
+  var output = document.getElementById('output');
+  var searchOutput = document.getElementById('searchOutput');
+  var resultCountEl = document.getElementById('resultCount');
+  var secretKey = document.getElementById('secretKey');
+  var revError = document.getElementById('revError');
+
+  var ENCRYPTION_KEYS_STORAGE = 'helpers-encryption-keys';
+  var REGEX_STORAGE = 'helpers-regex-patterns';
+  var loadKeySelect = document.getElementById('loadKeySelect');
+  var saveKeyName = document.getElementById('saveKeyName');
+
+  var TOOL_ORIGIN = 'data-masking';
+
+  function getSavedRegexes() {
+    try {
+      var raw = localStorage.getItem(REGEX_STORAGE);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (typeof parsed !== 'object' || parsed === null) return [];
+      return Object.keys(parsed).map(function (name) {
+        var entry = parsed[name];
+        var pattern = typeof entry === 'object' && entry != null && 'pattern' in entry ? entry.pattern : String(entry ?? '');
+        var flags = typeof entry === 'object' && entry != null && entry.flags != null ? entry.flags : 'g';
+        return { name: name, pattern: pattern, flags: flags };
+      }).filter(function (r) { return r.pattern; });
+    } catch (e) { return []; }
+  }
+
+  function refreshSavedRegexUI() {
+    var list = getSavedRegexes();
+    var cb = document.getElementById('savedRegexCheckboxes');
+    cb.innerHTML = '';
+    list.forEach(function (r) {
+      var label = document.createElement('label');
+      var input = document.createElement('input');
+      input.type = 'checkbox';
+      input.className = 'saved-regex-cb';
+      input.dataset.name = r.name;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + r.name));
+      cb.appendChild(label);
+    });
+    var sel = document.getElementById('regexSavedSelect');
+    var cur = sel.value;
+    sel.innerHTML = '';
+    var opt0 = document.createElement('option');
+    opt0.value = '';
+    opt0.textContent = '— None (use pattern above) —';
+    sel.appendChild(opt0);
+    list.forEach(function (r) {
+      var opt = document.createElement('option');
+      opt.value = r.name;
+      opt.textContent = r.name;
+      sel.appendChild(opt);
+    });
+    if (list.some(function (r) { return r.name === cur; })) sel.value = cur;
+  }
+
+  function getStoredKeys() {
+    try {
+      var raw = localStorage.getItem(ENCRYPTION_KEYS_STORAGE);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    } catch (e) { return {}; }
+  }
+
+  function keyEntryValue(entry) {
+    return typeof entry === 'object' && entry != null && 'value' in entry ? entry.value : entry;
+  }
+
+  function setStoredKeyByName(name, value) {
+    var obj = getStoredKeys();
+    if (value == null || value === '') {
+      delete obj[name];
+      try { localStorage.setItem(ENCRYPTION_KEYS_STORAGE, JSON.stringify(obj)); } catch (e) {}
+      return true;
+    }
+    if (Object.prototype.hasOwnProperty.call(obj, name)) return false;
+    obj[name] = { value: value, origin: TOOL_ORIGIN };
+    try { localStorage.setItem(ENCRYPTION_KEYS_STORAGE, JSON.stringify(obj)); } catch (e) {}
+    return true;
+  }
+
+  function refreshKeyDropdowns() {
+    var obj = getStoredKeys();
+    var names = Object.keys(obj).sort();
+    var cur = loadKeySelect.value;
+    loadKeySelect.innerHTML = '';
+    var opt0 = document.createElement('option');
+    opt0.value = '';
+    opt0.textContent = '— None —';
+    loadKeySelect.appendChild(opt0);
+    names.forEach(function (n) {
+      var opt = document.createElement('option');
+      opt.value = n;
+      var origin = typeof obj[n] === 'object' && obj[n] && obj[n].origin ? obj[n].origin : '';
+      opt.textContent = origin ? n + ' (' + origin + ')' : n;
+      loadKeySelect.appendChild(opt);
+    });
+    if (names.indexOf(cur) !== -1) loadKeySelect.value = cur;
+  }
+
+  var PATTERNS = {
+    email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+    phone: /(?:\+\d{1,4}[\s\-.]?)?(?:\(?\d{2,4}\)?[\s\-.]?)?\d{3,4}[\s\-.]?\d{3,4}(?:[\s\-.]?\d{2,4})?/g,
+    url: /(?:https?:\/\/|www\.)[^\s<>"{}|\\^`[\]]+/gi,
+    urlPlain: /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?:\/[^\s<>"{}|\\^`[\]]*)?/g
+  };
+
+  var TOKEN_PREFIX = '__DM_';
+  var TOKEN_SUFFIX = '__';
+
+  function getIntensity() {
+    var r = document.querySelector('input[name="intensity"]:checked');
+    return r ? r.value : 'low';
+  }
+
+  function maskValue(str, type, intensity) {
+    if (intensity === 'high') {
+      var label = type === 'email' ? 'EMAIL' : type === 'phone' ? 'PHONE' : type === 'url' || type === 'urlPlain' ? 'URL' : 'REDACTED';
+      return '[' + label + ']';
+    }
+    if (type === 'regex') {
+      if (intensity === 'low') return str.length <= 2 ? '***' : str.slice(0, 2) + '***';
+      return (str[0] || '') + '***';
+    }
+    if (type === 'email') {
+      var at = str.indexOf('@');
+      if (at <= 0) return '[EMAIL]';
+      var local = str.slice(0, at);
+      var domain = str.slice(at);
+      if (intensity === 'low') {
+        var n = Math.min(2, local.length);
+        return local.slice(0, n) + '***' + domain;
+      }
+      return (local[0] || '') + '***' + domain;
+    }
+    if (type === 'phone') {
+      var digits = str.replace(/\D/g, '');
+      if (digits.length < 4) return '***';
+      if (intensity === 'low') return digits.slice(0, 2) + '***' + (digits.length > 5 ? digits.slice(-2) : '');
+      return (digits[0] || '') + '***' + (digits.length > 3 ? digits.slice(-2) : '');
+    }
+    if (type === 'url' || type === 'urlPlain') {
+      if (intensity === 'low') return str.slice(0, 12) + '***' + (str.length > 15 ? str.slice(-8) : '');
+      return str.slice(0, 8) + '***';
+    }
+    return '***';
+  }
+
+  function applyOneWayMask(text, patternList, intensity, typeList) {
+    var result = text;
+    patternList.forEach(function (p, i) {
+      var re = new RegExp(p.source, p.flags || 'g');
+      var type = (typeList && typeList[i] != null) ? typeList[i] : (p === PATTERNS.email ? 'email' : p === PATTERNS.phone ? 'phone' : 'url');
+      result = result.replace(re, function (match) { return maskValue(match, type, intensity); });
+    });
+    return result;
+  }
+
+  function setOutput(text) {
+    fullResultText = text || '';
+    var lines = fullResultText.split(/\r?\n/).filter(Boolean);
+    output.value = fullResultText;
+    resultCountEl.textContent = lines.length ? lines.length + ' line' + (lines.length !== 1 ? 's' : '') : '';
+    applyResultFilter();
+  }
+
+  var fullResultText = '';
+  function applyResultFilter() {
+    var q = (searchOutput.value || '').trim().toLowerCase();
+    if (!q) {
+      output.value = fullResultText;
+      return;
+    }
+    var lines = fullResultText.split(/\r?\n/);
+    var filtered = lines.filter(function (line) { return line.toLowerCase().indexOf(q) !== -1; });
+    output.value = filtered.join('\n');
+  }
+
+  function maskEmails() {
+    var text = (input.value || '').trim();
+    if (!text) { setOutput(''); return; }
+    fullResultText = applyOneWayMask(text, [PATTERNS.email], getIntensity());
+    setOutput(fullResultText);
+  }
+
+  function maskPhones() {
+    var text = (input.value || '').trim();
+    if (!text) { setOutput(''); return; }
+    fullResultText = applyOneWayMask(text, [PATTERNS.phone], getIntensity());
+    setOutput(fullResultText);
+  }
+
+  function maskUrls() {
+    var text = (input.value || '').trim();
+    if (!text) { setOutput(''); return; }
+    fullResultText = applyOneWayMask(text, [PATTERNS.url, PATTERNS.urlPlain], getIntensity());
+    setOutput(fullResultText);
+  }
+
+  function maskAll() {
+    var text = (input.value || '').trim();
+    if (!text) { setOutput(''); return; }
+    fullResultText = applyOneWayMask(text, [PATTERNS.email, PATTERNS.phone, PATTERNS.url, PATTERNS.urlPlain], getIntensity());
+    setOutput(fullResultText);
+  }
+
+  document.getElementById('btnMaskEmail').onclick = maskEmails;
+  document.getElementById('btnMaskPhone').onclick = maskPhones;
+  document.getElementById('btnMaskUrl').onclick = maskUrls;
+  document.getElementById('btnMaskAll').onclick = maskAll;
+
+  function maskWithRegex() {
+    var text = (input.value || '').trim();
+    if (!text) { setOutput(''); return; }
+    var patternInput = document.getElementById('regexPatternInput');
+    var flagsInput = document.getElementById('regexFlagsInput');
+    var savedSelect = document.getElementById('regexSavedSelect');
+    var pattern, flags;
+    if ((savedSelect.value || '').trim()) {
+      var list = getSavedRegexes().filter(function (r) { return r.name === savedSelect.value; });
+      if (list.length === 0) { setOutput(text); return; }
+      pattern = list[0].pattern;
+      flags = list[0].flags || 'g';
+    } else {
+      pattern = (patternInput.value || '').trim();
+      flags = (flagsInput.value || '').trim() || 'g';
+    }
+    if (!pattern) { setOutput(text); return; }
+    try {
+      var re = new RegExp(pattern, flags);
+      fullResultText = applyOneWayMask(text, [re], getIntensity(), ['regex']);
+      setOutput(fullResultText);
+    } catch (e) {
+      revError.textContent = 'Invalid regex: ' + (e.message || e);
+      revError.style.display = 'block';
+    }
+  }
+
+  document.getElementById('btnMaskRegex').onclick = maskWithRegex;
+
+  function genKey() {
+    var arr = new Uint8Array(24);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(arr);
+    } else {
+      for (var i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
+    }
+    var base64 = btoa(String.fromCharCode.apply(null, arr));
+    secretKey.value = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    revError.style.display = 'none';
+  }
+
+  document.getElementById('btnGenKey').onclick = genKey;
+
+  document.getElementById('showKey').addEventListener('change', function () {
+    secretKey.type = this.checked ? 'text' : 'password';
+  });
+
+  document.getElementById('btnCopyKey').onclick = function () {
+    var key = (secretKey.value || '').trim();
+    if (!key) {
+      revError.textContent = 'Generate or enter a key first.';
+      revError.style.display = 'block';
+      return;
+    }
+    revError.style.display = 'none';
+    navigator.clipboard.writeText(key).then(function () {
+      var btn = document.getElementById('btnCopyKey');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () { btn.textContent = 'Copy key'; btn.classList.remove('copied'); }, 2000);
+    }).catch(function () {
+      revError.textContent = 'Could not copy to clipboard.';
+      revError.style.display = 'block';
+    });
+  };
+
+  function getKeyBytes() {
+    var raw = (secretKey.value || '').trim();
+    if (!raw) return null;
+    try {
+      var b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var binary = atob(b64);
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    } catch (e) {
+      return new TextEncoder().encode(raw);
+    }
+  }
+
+  function deriveKey(passwordBytes) {
+    return crypto.subtle.importKey('raw', passwordBytes, 'PBKDF2', false, ['deriveBits', 'deriveKey']).then(function (keyMaterial) {
+      var salt = new Uint8Array(16);
+      if (passwordBytes.length >= 16) for (var i = 0; i < 16; i++) salt[i] = passwordBytes[i];
+      else salt.fill(0);
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    });
+  }
+
+  function encrypt(plaintext, key) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    return crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: iv, tagLength: 128 },
+      key,
+      new TextEncoder().encode(plaintext)
+    ).then(function (cipher) {
+      var combined = new Uint8Array(iv.length + cipher.byteLength);
+      combined.set(iv, 0);
+      combined.set(new Uint8Array(cipher), iv.length);
+      var b64 = btoa(String.fromCharCode.apply(null, combined));
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    });
+  }
+
+  function decrypt(b64url, key) {
+    try {
+      var b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var binary = atob(b64);
+      var combined = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) combined[i] = binary.charCodeAt(i);
+    } catch (e) { return Promise.reject(new Error('Invalid token')); }
+    if (combined.length < 13) return Promise.reject(new Error('Token too short'));
+    var iv = combined.slice(0, 12);
+    var cipher = combined.slice(12);
+    return crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv, tagLength: 128 },
+      key,
+      cipher
+    ).then(function (buf) {
+      return new TextDecoder().decode(buf);
+    });
+  }
+
+  function showRevError(msg) {
+    revError.textContent = msg;
+    revError.style.display = 'block';
+  }
+
+  function revMask() {
+    revError.style.display = 'none';
+    var text = input.value || '';
+    var keyBytes = getKeyBytes();
+    if (!keyBytes) { showRevError('Enter or generate a secret key.'); return; }
+    if (!text) { setOutput(''); return; }
+
+    var allPatterns = [];
+    if (document.getElementById('optEmail').checked) allPatterns.push(PATTERNS.email);
+    if (document.getElementById('optPhone').checked) allPatterns.push(PATTERNS.phone);
+    if (document.getElementById('optUrl').checked) {
+      allPatterns.push(PATTERNS.url);
+      allPatterns.push(PATTERNS.urlPlain);
+    }
+    var saved = getSavedRegexes();
+    document.querySelectorAll('.saved-regex-cb:checked').forEach(function (cb) {
+      var name = cb.dataset.name;
+      var r = saved.filter(function (x) { return x.name === name; })[0];
+      if (r) {
+        try { allPatterns.push(new RegExp(r.pattern, r.flags || 'g')); } catch (e) {}
+      }
+    });
+    if (allPatterns.length === 0) {
+      showRevError('Select at least one data type or saved regex to mask.');
+      return;
+    }
+    var matches = [];
+    allPatterns.forEach(function (p) {
+      var re = new RegExp(p.source, p.flags || 'g');
+      var m;
+      while ((m = re.exec(text)) !== null) matches.push({ index: m.index, length: m[0].length, text: m[0] });
+    });
+    matches.sort(function (a, b) { return a.index - b.index; });
+    var merged = [];
+    matches.forEach(function (r) {
+      if (merged.length && r.index <= merged[merged.length - 1].index + merged[merged.length - 1].length) {
+        if (r.index + r.length > merged[merged.length - 1].index + merged[merged.length - 1].length) {
+          merged[merged.length - 1].length = (r.index + r.length) - merged[merged.length - 1].index;
+          merged[merged.length - 1].text = text.slice(merged[merged.length - 1].index, merged[merged.length - 1].index + merged[merged.length - 1].length);
+        }
+      } else merged.push({ index: r.index, length: r.length, text: r.text });
+    });
+
+    deriveKey(keyBytes).then(function (key) {
+      var promises = merged.map(function (r) {
+        return encrypt(r.text, key).then(function (tok) {
+          return { index: r.index, length: r.length, token: TOKEN_PREFIX + tok + TOKEN_SUFFIX };
+        });
+      });
+      return Promise.all(promises);
+    }).then(function (tokens) {
+      var result = '';
+      var last = 0;
+      tokens.forEach(function (t) {
+        result += text.slice(last, t.index) + t.token;
+        last = t.index + t.length;
+      });
+      result += text.slice(last);
+      fullResultText = result;
+      setOutput(result);
+    }).catch(function (e) {
+      showRevError('Mask failed: ' + (e.message || e));
+    });
+  }
+
+  function revUnmask() {
+    revError.style.display = 'none';
+    var text = input.value || '';
+    var keyBytes = getKeyBytes();
+    if (!keyBytes) { showRevError('Enter the same secret key used when masking.'); return; }
+    if (!text) { setOutput(''); return; }
+
+    var re = new RegExp(TOKEN_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([A-Za-z0-9_-]+)' + TOKEN_SUFFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    var tokens = [];
+    var m;
+    while ((m = re.exec(text)) !== null) tokens.push({ index: m.index, length: m[0].length, b64: m[1] });
+
+    if (tokens.length === 0) {
+      fullResultText = text;
+      setOutput(text);
+      return;
+    }
+
+    deriveKey(keyBytes).then(function (key) {
+      var promises = tokens.map(function (t) {
+        return decrypt(t.b64, key).then(function (plain) {
+          return { index: t.index, length: t.length, text: plain };
+        });
+      });
+      return Promise.all(promises);
+    }).then(function (decrypted) {
+      var result = '';
+      var last = 0;
+      decrypted.forEach(function (d) {
+        result += text.slice(last, d.index) + d.text;
+        last = d.index + d.length;
+      });
+      result += text.slice(last);
+      fullResultText = result;
+      setOutput(result);
+    }).catch(function (e) {
+      showRevError('Unmask failed: ' + (e.message || e) + '. Use the same key that was used to mask.');
+    });
+  }
+
+  document.getElementById('btnRevMask').onclick = revMask;
+  document.getElementById('btnRevUnmask').onclick = revUnmask;
+
+  document.getElementById('btnLoadKey').onclick = function () {
+    var name = (loadKeySelect.value || '').trim();
+    if (!name) {
+      secretKey.value = '';
+      return;
+    }
+    var obj = getStoredKeys();
+    var val = keyEntryValue(obj[name]);
+    if (val != null) secretKey.value = val;
+  };
+
+  document.getElementById('btnSaveKey').onclick = function () {
+    var name = (saveKeyName.value || '').trim().toLowerCase().replace(/\s+/g, '-');
+    var key = (secretKey.value || '').trim();
+    if (!name) {
+      revError.textContent = 'Enter a name (e.g. work, personal) to save this key.';
+      revError.style.display = 'block';
+      revError.style.color = '';
+      return;
+    }
+    if (!key) {
+      revError.textContent = 'Enter or generate a key first.';
+      revError.style.display = 'block';
+      revError.style.color = '';
+      return;
+    }
+    revError.style.display = 'none';
+    var saved = setStoredKeyByName(name, key);
+    refreshKeyDropdowns();
+    if (!saved) {
+      revError.textContent = "A key named \"" + name + "\" already exists. Use a different name or delete it from the Keys manager in the header.";
+      revError.style.display = 'block';
+      revError.style.color = '';
+      return;
+    }
+    revError.textContent = "Saved as \"" + name + "\". You can load or delete it from the Keys manager in the header.";
+    revError.style.display = 'block';
+    revError.style.color = '#0a7';
+    setTimeout(function () { revError.style.display = 'none'; revError.style.color = ''; }, 3000);
+  };
+
+
+  refreshKeyDropdowns();
+  refreshSavedRegexUI();
+  window.addEventListener('focus', refreshSavedRegexUI);
+
+  searchOutput.addEventListener('input', applyResultFilter);
+  searchOutput.addEventListener('change', applyResultFilter);
+
+  document.getElementById('copyBtn').onclick = function () {
+    var t = output.value;
+    if (!t) return;
+    navigator.clipboard.writeText(t).then(function () {
+      var btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+
+  (function initUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var intensity = params.get('intensity');
+    if (intensity === 'low' || intensity === 'medium' || intensity === 'high') {
+      var r = document.querySelector('input[name="intensity"][value="' + intensity + '"]');
+      if (r) r.checked = true;
+    }
+  })();
+
+  document.querySelectorAll('input[name="intensity"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      var params = new URLSearchParams(window.location.search);
+      params.set('intensity', getIntensity());
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'helpers-set-query', query: Object.fromEntries(params) }, '*');
+      } else {
+        window.history.replaceState(null, '', window.location.pathname + '?' + params.toString());
+      }
+    });
+  });
+})();
+  </script>
+</body>
+</html>

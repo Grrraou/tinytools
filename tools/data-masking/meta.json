@@ -1,0 +1,1 @@
+{"name":"Text data masking","description":"Mask emails, phones, URLs in text (e.g. j***@gmail.com). Reversible masking with a secret key. Runs locally — safe for AI and sharing.","category":"Cryptography","categories":["Cryptography","Text"],"keywords":["mask","redact","PII","email","phone","privacy","AI","reversible","obfuscate"],"order":1,"icon":"🎭"}

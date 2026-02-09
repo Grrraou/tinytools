@@ -13,6 +13,7 @@ const MANIFEST_PATH = path.join(__dirname, '..', 'tools-manifest.json');
 const CATEGORY_ORDER = [
   'Text',
   'Encoding',
+  'Cryptography',
   'Web & APIs',
   'CSS & Design',
   'Units & Numbers',

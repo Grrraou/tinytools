@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regex Tester</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #fff; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem 0; color: #333; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .row { margin-bottom: 1rem; }
+    input[type="text"], textarea { width: 100%; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    input:focus, textarea:focus { outline: none; border-color: #1a73e8; }
+    textarea { min-height: 100px; resize: vertical; }
+    .flags-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+    .flags-row label { margin-bottom: 0; font-weight: normal; font-size: 0.9rem; }
+    .flags-row input { width: auto; margin-right: 0.25rem; }
+    .valid { color: #0a7; font-size: 0.9rem; }
+    .invalid { color: #c00; font-size: 0.9rem; }
+    .highlight-wrap { border: 1px solid #ccc; border-radius: 4px; padding: 0.5rem; min-height: 80px; background: #f8f9fa; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace; font-size: 0.9rem; line-height: 1.5; }
+    .highlight-wrap .m { background: #ffeb3b; padding: 0 2px; border-radius: 2px; }
+    .highlight-wrap .g1 { background: #c8e6c9; padding: 0 2px; border-radius: 2px; }
+    .highlight-wrap .g2 { background: #bbdefb; padding: 0 2px; border-radius: 2px; }
+    .highlight-wrap .g3 { background: #e1bee7; padding: 0 2px; border-radius: 2px; }
+    .highlight-wrap .g4 { background: #ffccbc; padding: 0 2px; border-radius: 2px; }
+    .match-count { font-size: 0.9rem; color: #555; margin-bottom: 0.5rem; }
+    .captures-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: ui-monospace, monospace; }
+    .captures-table th, .captures-table td { border: 1px solid #ddd; padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
+    .captures-table th { background: #f5f5f5; font-family: system-ui, sans-serif; font-weight: 600; }
+    .captures-table td { word-break: break-all; }
+    .captures-table .match-num { width: 4rem; }
+    .explain-list { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; }
+    .explain-list li { padding: 0.25rem 0; border-bottom: 1px solid #eee; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
+    .explain-list li:last-child { border-bottom: none; }
+    .explain-list code { background: #f0f0f0; padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.85em; }
+    .doc-section { margin-top: 1rem; font-size: 0.9rem; color: #444; line-height: 1.6; }
+    .doc-section h3 { font-size: 0.95rem; margin: 0.5rem 0 0.25rem 0; color: #333; }
+    .doc-section code { background: #f0f0f0; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.88em; }
+    .doc-section ul { margin: 0.25rem 0; padding-left: 1.25rem; }
+    .doc-section p { margin: 0.25rem 0; }
+    .local-banner { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 1rem; font-size: 0.88rem; color: #2e7d32; }
+    .local-banner strong { display: block; margin-bottom: 0.2rem; }
+    .empty-hint { color: #888; font-size: 0.9rem; }
+    .save-regex-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+    .save-regex-name { max-width: 16rem; padding: 0.35rem 0.5rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; }
+    .save-regex-inline button { padding: 0.35rem 0.6rem; font-size: 0.9rem; cursor: pointer; border: 1px solid #1a73e8; border-radius: 4px; background: #1a73e8; color: #fff; }
+    .save-regex-inline button:hover { background: #1557b0; }
+    #saveRegexMsg.success { color: #0a7; }
+    #saveRegexMsg.error { color: #c00; }
+    .sample-btns { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
+    .sample-btns button { padding: 0.35rem 0.6rem; font-size: 0.8rem; font: inherit; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .sample-btns button:hover { background: #e8e8e8; }
+  </style>
+</head>
+<body>
+  <h1>Regex Tester</h1>
+  <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #555;">Test regular expressions in the browser. Enter a pattern and flags, type or paste a test string — matches highlight live. See capture groups and validation errors with no data sent to any server.</p>
+
+  <div class="local-banner" role="status">
+    <strong>Runs entirely in your browser</strong>
+    No backend. All matching and highlighting happens locally as you type.
+  </div>
+
+  <div class="row">
+    <label for="pattern">Pattern</label>
+    <input type="text" id="pattern" placeholder="e.g. \w+@\w+\.\w+ or (\d{3})-(\d{2})" spellcheck="false" />
+  </div>
+
+  <div class="row">
+    <label>Flags</label>
+    <div class="flags-row">
+      <label><input type="checkbox" id="flgG" /> g</label>
+      <label><input type="checkbox" id="flgI" /> i</label>
+      <label><input type="checkbox" id="flgM" /> m</label>
+      <label><input type="checkbox" id="flgS" /> s</label>
+      <label><input type="checkbox" id="flgU" /> u</label>
+      <label><input type="checkbox" id="flgY" /> y</label>
+    </div>
+    <p class="note" style="font-size: 0.85rem; color: #555; margin-top: 0.2rem;">g = global (all matches), i = ignore case, m = multiline (^/$ per line), s = dotall, u = unicode, y = sticky</p>
+  </div>
+
+  <div class="row save-regex-row">
+    <label for="saveRegexName">Save to Regex manager</label>
+    <div class="save-regex-inline">
+      <input type="text" id="saveRegexName" placeholder="Name (e.g. email, my-pattern)" class="save-regex-name" aria-label="Name for saved pattern" />
+      <button type="button" id="btnSaveRegex">Save</button>
+    </div>
+    <p class="note" id="saveRegexMsg" style="margin-top: 0.25rem;"></p>
+    <p class="note" style="margin-top: 0.15rem; font-size: 0.82rem;">Saved patterns appear in the <strong>Regex</strong> manager (header). You cannot overwrite an existing name.</p>
+  </div>
+
+  <div class="row">
+    <label for="testString">Test string</label>
+    <textarea id="testString" placeholder="Type or paste text to test against the pattern…" rows="5"></textarea>
+    <p class="note" style="margin-bottom: 0.25rem;">Insert sample data (mix of common patterns):</p>
+    <div class="sample-btns" id="sampleBtns">
+      <button type="button" data-sample="mixed">Mixed (emails, dates, IDs, URLs)</button>
+      <button type="button" data-sample="emails">Emails & usernames</button>
+      <button type="button" data-sample="dates">Dates & numbers</button>
+      <button type="button" data-sample="urls">URLs & paths</button>
+      <button type="button" data-sample="logs">Log lines</button>
+      <button type="button" data-sample="csv">CSV-like rows</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span id="validation" class="valid" aria-live="polite"></span>
+  </div>
+
+  <h2>Matches</h2>
+  <div class="match-count" id="matchCount"></div>
+  <div class="highlight-wrap" id="highlight" aria-label="Test string with matches highlighted"></div>
+  <p id="noMatches" class="empty-hint" style="display: none; margin-top: 0.5rem;">No matches. Try adjusting the pattern or flags.</p>
+
+  <h2>Capture groups</h2>
+  <div id="capturesWrap">
+    <table class="captures-table" id="capturesTable">
+      <thead><tr><th class="match-num">#</th><th>Full match</th><th>Group 1</th><th>Group 2</th><th>Group 3</th><th>Group 4</th></tr></thead>
+      <tbody id="capturesBody"></tbody>
+    </table>
+    <p id="noCaptures" class="empty-hint" style="display: none;">No matches, or pattern has no capture groups.</p>
+  </div>
+
+  <h2>Pattern explanation</h2>
+  <p class="note" style="margin-bottom: 0.5rem;">Best-effort breakdown of constructs in your pattern.</p>
+  <ul class="explain-list" id="explainList"></ul>
+  <p id="explainEmpty" class="empty-hint" style="display: none;">Enter a pattern above to see an explanation.</p>
+
+  <h2>How to write a regex</h2>
+  <div class="doc-section">
+    <h3>Anchors</h3>
+    <p><code>^</code> start of string (or line with <code>m</code>); <code>$</code> end of string (or line with <code>m</code>); <code>\b</code> word boundary; <code>\B</code> not word boundary.</p>
+    <h3>Character classes</h3>
+    <p><code>\d</code> digit; <code>\D</code> non-digit; <code>\w</code> word char (letter, digit, underscore); <code>\W</code> non-word; <code>\s</code> whitespace; <code>\S</code> non-whitespace; <code>.</code> any char (except newline unless <code>s</code> flag). <code>[abc]</code> one of a,b,c; <code>[a-z]</code> range; <code>[^a]</code> negated.</p>
+    <h3>Quantifiers</h3>
+    <p><code>*</code> 0 or more; <code>+</code> 1 or more; <code>?</code> 0 or 1; <code>{n}</code> exactly n; <code>{n,}</code> n or more; <code>{n,m}</code> between n and m. Add <code>?</code> for lazy (e.g. <code>*?</code>).</p>
+    <h3>Groups and alternation</h3>
+    <p><code>(…)</code> capturing group; <code>(?:…)</code> non-capturing; <code>a|b</code> match a or b.</p>
+    <h3>Escaping</h3>
+    <p>Special chars: <code>\. \* \+ \? \[ \] \( \) \{ \} \^ \$ \| \\</code>. In a character class <code>[ ]</code>, <code>-</code> and <code>^</code> may need escaping (<code>\-</code> <code>\^</code>).</p>
+  </div>
+
+  <script>
+(function () {
+  var patternEl = document.getElementById('pattern');
+  var testStringEl = document.getElementById('testString');
+  var validationEl = document.getElementById('validation');
+  var matchCountEl = document.getElementById('matchCount');
+  var highlightEl = document.getElementById('highlight');
+  var noMatchesEl = document.getElementById('noMatches');
+  var capturesBody = document.getElementById('capturesBody');
+  var noCapturesEl = document.getElementById('noCaptures');
+  var explainList = document.getElementById('explainList');
+  var explainEmpty = document.getElementById('explainEmpty');
+  var saveRegexName = document.getElementById('saveRegexName');
+  var saveRegexMsg = document.getElementById('saveRegexMsg');
+
+  var REGEX_STORAGE = 'helpers-regex-patterns';
+  var TOOL_ORIGIN = 'regex-tester';
+
+  function loadRegexPatterns() {
+    try {
+      var raw = localStorage.getItem(REGEX_STORAGE);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveRegexToStore(obj) {
+    try {
+      localStorage.setItem(REGEX_STORAGE, JSON.stringify(obj));
+    } catch (e) {}
+  }
+
+  var SAMPLES = {
+    mixed: 'Contact: alice@example.com or bob_2@test.co.uk\n' +
+      'Dates: 2024-01-15, 2023-12-31, 1999-05-06\n' +
+      'IDs: user_123, order-456, ref#789\n' +
+      'Phone: +1 555-123-4567, 02 98 76 54 32\n' +
+      'URLs: https://example.com/path?q=1 and http://sub.domain.org/doc\n' +
+      'Random: foo bar baz 42 xyz 3.14',
+    emails: 'alice@example.com\nbob.jones@company.co.uk\nsupport+tag@service.io\n' +
+      'user_123@test.org\nadmin@localhost',
+    dates: '2024-01-15\n2023-12-31\n1999-05-06\n01/15/2024\n15.03.2023\n' +
+      '2024-01-15T10:30:00Z\nQ1 2024',
+    urls: 'https://example.com/page\nhttp://sub.domain.org/path/to/resource\n' +
+      'https://site.com/search?q=test&sort=asc\n' +
+      '/relative/path/to/file.json\n/docs/api/v2/users',
+    logs: '2024-01-15 10:30:01 INFO  Request received id=abc123\n' +
+      '2024-01-15 10:30:02 ERROR Connection refused 10.0.0.1:5432\n' +
+      '2024-01-15 10:30:03 WARN  Retry attempt 2/5\n' +
+      '[DEBUG] user_id=42 action=login',
+    csv: 'id,name,email,date\n' +
+      '1,Alice,alice@ex.com,2024-01-15\n' +
+      '2,Bob Jones,bob@test.org,2024-01-16\n' +
+      '3,Charlie,charlie+tag@co.uk,2024-01-17'
+  };
+
+  function getFlags() {
+    var s = '';
+    if (document.getElementById('flgG').checked) s += 'g';
+    if (document.getElementById('flgI').checked) s += 'i';
+    if (document.getElementById('flgM').checked) s += 'm';
+    if (document.getElementById('flgS').checked) s += 's';
+    if (document.getElementById('flgU').checked) s += 'u';
+    if (document.getElementById('flgY').checked) s += 'y';
+    return s;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '&#10;');
+  }
+
+  function run() {
+    var pattern = patternEl.value;
+    var flags = getFlags();
+    var text = testStringEl.value;
+
+    var re = null;
+    var err = null;
+    if (pattern.length > 0) {
+      try {
+        re = new RegExp(pattern, flags);
+      } catch (e) {
+        err = e.message || String(e);
+      }
+    }
+
+    if (err) {
+      validationEl.textContent = 'Invalid: ' + err;
+      validationEl.className = 'invalid';
+      highlightEl.innerHTML = escapeHtml(text) || '<span class="empty-hint">Enter a test string.</span>';
+      highlightEl.classList.remove('empty-hint');
+      matchCountEl.textContent = '';
+      noMatchesEl.style.display = 'none';
+      capturesBody.innerHTML = '';
+      noCapturesEl.style.display = 'block';
+      explainPattern(pattern);
+      return;
+    }
+
+    if (pattern.length === 0) {
+      validationEl.textContent = 'Enter a pattern.';
+      validationEl.className = 'valid';
+      highlightEl.textContent = text || '';
+      matchCountEl.textContent = '';
+      noMatchesEl.style.display = 'none';
+      capturesBody.innerHTML = '';
+      noCapturesEl.style.display = 'block';
+      explainList.innerHTML = '';
+      explainEmpty.style.display = 'block';
+      return;
+    }
+
+    validationEl.textContent = 'Valid';
+    validationEl.className = 'valid';
+
+    var matchFlags = flags.indexOf('g') !== -1 ? flags : flags + 'g';
+    var matches = [];
+    var reForMatch = new RegExp(pattern, matchFlags);
+    var m;
+    while ((m = reForMatch.exec(text)) !== null) {
+      var arr = { index: m.index, 0: m[0] };
+      for (var i = 1; i < m.length; i++) arr[i] = m[i];
+      matches.push(arr);
+      if (m[0].length === 0) reForMatch.lastIndex++;
+    }
+
+    matchCountEl.textContent = matches.length + ' match(es)';
+    noMatchesEl.style.display = matches.length === 0 ? 'block' : 'none';
+
+    var segments = [];
+    var last = 0;
+    for (var i = 0; i < matches.length; i++) {
+      var mi = matches[i];
+      if (mi.index > last) {
+        segments.push({ type: 'text', start: last, end: mi.index, value: text.slice(last, mi.index) });
+      }
+      var fullLen = mi[0].length;
+      segments.push({ type: 'match', start: mi.index, end: mi.index + fullLen, value: mi[0] });
+      last = mi.index + fullLen;
+    }
+    if (last < text.length) {
+      segments.push({ type: 'text', start: last, end: text.length, value: text.slice(last) });
+    }
+    if (segments.length === 0 && text.length > 0) {
+      segments.push({ type: 'text', start: 0, end: text.length, value: text });
+    }
+
+    var html = '';
+    for (var s = 0; s < segments.length; s++) {
+      var seg = segments[s];
+      if (seg.type === 'text') {
+        html += escapeHtml(seg.value);
+      } else {
+        html += '<span class="m">' + escapeHtml(seg.value) + '</span>';
+      }
+    }
+    highlightEl.innerHTML = html || '<span class="empty-hint">Enter a test string.</span>';
+    highlightEl.classList.toggle('empty-hint', !html && !text);
+
+    var maxGroups = 0;
+    for (var i = 0; i < matches.length; i++) {
+      for (var j = 1; j < matches[i].length; j++) {
+        if (matches[i][j] !== undefined) maxGroups = Math.max(maxGroups, j);
+      }
+    }
+    capturesBody.innerHTML = '';
+    for (var i = 0; i < matches.length; i++) {
+      var row = matches[i];
+      var tr = document.createElement('tr');
+      var cells = [i + 1, row[0] ?? ''];
+      for (var j = 1; j <= Math.max(4, maxGroups); j++) {
+        cells.push(row[j] !== undefined ? row[j] : '');
+      }
+      for (var c = 0; c < 6; c++) {
+        var td = document.createElement('td');
+        td.textContent = cells[c] ?? '';
+        if (c === 0) td.classList.add('match-num');
+        tr.appendChild(td);
+      }
+      capturesBody.appendChild(tr);
+    }
+    noCapturesEl.style.display = matches.length === 0 ? 'block' : 'none';
+
+    explainPattern(pattern);
+  }
+
+  function explainPattern(pattern) {
+    explainList.innerHTML = '';
+    explainEmpty.style.display = pattern.length === 0 ? 'block' : 'none';
+    if (pattern.length === 0) return;
+
+    var tokenSpecs = [
+      { pat: '^\\\\.', desc: '\\… — escaped character' },
+      { pat: '^\\\\b', desc: '\\b — word boundary' },
+      { pat: '^\\\\B', desc: '\\B — not word boundary' },
+      { pat: '^\\\\d', desc: '\\d — digit [0-9]' },
+      { pat: '^\\\\D', desc: '\\D — non-digit' },
+      { pat: '^\\\\w', desc: '\\w — word char [a-zA-Z0-9_]' },
+      { pat: '^\\\\W', desc: '\\W — non-word char' },
+      { pat: '^\\\\s', desc: '\\s — whitespace' },
+      { pat: '^\\\\S', desc: '\\S — non-whitespace' },
+      { pat: '^\\^', desc: '^ — start of string (or line with m)' },
+      { pat: '^\\$', desc: '$ — end of string (or line with m)' },
+      { pat: '^\\.', desc: '. — any character (except newline by default)' },
+      { pat: '^\\*', desc: '* — 0 or more' },
+      { pat: '^\\+', desc: '+ — 1 or more' },
+      { pat: '^\\?', desc: '? — 0 or 1 (or lazy quantifier)' },
+      { pat: '^\\(\\?[:=!<]', desc: '(?:…) (?=…) (?!…) (?<=…) (?<!…) — non-capturing / lookahead / lookbehind' },
+      { pat: '^\\(', desc: '( — start capturing group' },
+      { pat: '^\\)', desc: ') — end group' },
+      { pat: '^\\[[^\\]]*\\]', desc: '[…] — character class' },
+      { pat: '^\\{[^}]+\\}', desc: '{n,m} — quantifier (exact/range)' },
+      { pat: '^\\|', desc: '| — alternation (or)' }
+    ];
+
+    var p = pattern;
+    var found = [];
+    while (p.length > 0) {
+      var matched = false;
+      for (var t = 0; t < tokenSpecs.length; t++) {
+        try {
+          var re = new RegExp(tokenSpecs[t].pat);
+          var mt = re.exec(p);
+          if (mt) {
+            found.push({ token: mt[0], desc: tokenSpecs[t].desc });
+            p = p.slice(mt[0].length);
+            matched = true;
+            break;
+          }
+        } catch (e) {}
+      }
+      if (!matched) {
+        found.push({ token: p.charAt(0), desc: 'Literal character' });
+        p = p.slice(1);
+      }
+    }
+
+    for (var f = 0; f < found.length; f++) {
+      var li = document.createElement('li');
+      var code = document.createElement('code');
+      code.textContent = found[f].token;
+      li.appendChild(code);
+      li.appendChild(document.createTextNode(' — ' + found[f].desc));
+      explainList.appendChild(li);
+    }
+    explainEmpty.style.display = 'none';
+  }
+
+  patternEl.addEventListener('input', run);
+  patternEl.addEventListener('change', run);
+  testStringEl.addEventListener('input', run);
+  testStringEl.addEventListener('change', run);
+  document.querySelectorAll('.flags-row input').forEach(function (el) {
+    el.addEventListener('change', run);
+  });
+
+  document.getElementById('sampleBtns').addEventListener('click', function (e) {
+    var key = e.target && e.target.getAttribute('data-sample');
+    if (key && SAMPLES[key] != null) {
+      testStringEl.value = SAMPLES[key];
+      run();
+    }
+  });
+
+  document.getElementById('btnSaveRegex').addEventListener('click', function () {
+    var name = (saveRegexName.value || '').trim().toLowerCase().replace(/\s+/g, '-');
+    var pattern = (patternEl.value || '').trim();
+    var flags = getFlags();
+    saveRegexMsg.textContent = '';
+    saveRegexMsg.className = '';
+    if (!name) {
+      saveRegexMsg.textContent = 'Enter a name (e.g. email, my-pattern).';
+      saveRegexMsg.className = 'note error';
+      return;
+    }
+    if (!pattern) {
+      saveRegexMsg.textContent = 'Enter a pattern first.';
+      saveRegexMsg.className = 'note error';
+      return;
+    }
+    try {
+      new RegExp(pattern, flags);
+    } catch (e) {
+      saveRegexMsg.textContent = 'Invalid pattern: ' + (e.message || e);
+      saveRegexMsg.className = 'note error';
+      return;
+    }
+    var obj = loadRegexPatterns();
+    if (Object.prototype.hasOwnProperty.call(obj, name)) {
+      saveRegexMsg.textContent = 'A pattern named "' + name + '" already exists. Use a different name or delete it from the Regex manager (header).';
+      saveRegexMsg.className = 'note error';
+      return;
+    }
+    obj[name] = { pattern: pattern, flags: flags || 'g', origin: TOOL_ORIGIN };
+    saveRegexToStore(obj);
+    saveRegexMsg.textContent = 'Saved as "' + name + '". Manage in Regex (header).';
+    saveRegexMsg.className = 'note success';
+    saveRegexName.value = '';
+    setTimeout(function () {
+      saveRegexMsg.textContent = '';
+      saveRegexMsg.className = '';
+    }, 4000);
+  });
+
+  (function applyUrlParams() {
+    var search = window.location.search;
+    if (!search) return;
+    try {
+      var params = new URLSearchParams(search);
+      var pattern = params.get('pattern');
+      if (pattern != null) {
+        patternEl.value = decodeURIComponent(pattern);
+      }
+      var flags = params.get('flags');
+      if (flags != null) {
+        flags = decodeURIComponent(flags);
+        document.getElementById('flgG').checked = flags.indexOf('g') !== -1;
+        document.getElementById('flgI').checked = flags.indexOf('i') !== -1;
+        document.getElementById('flgM').checked = flags.indexOf('m') !== -1;
+        document.getElementById('flgS').checked = flags.indexOf('s') !== -1;
+        document.getElementById('flgU').checked = flags.indexOf('u') !== -1;
+        document.getElementById('flgY').checked = flags.indexOf('y') !== -1;
+      }
+      var test = params.get('testString');
+      if (test != null) {
+        testStringEl.value = decodeURIComponent(test);
+      }
+    } catch (e) {}
+  })();
+
+  run();
+})();
+  </script>
+</body>
+</html>

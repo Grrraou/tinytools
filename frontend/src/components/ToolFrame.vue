@@ -54,7 +54,7 @@ function onIframeLoad() {
       :src="toolUrl"
       :title="tool.name"
       class="tool-iframe"
-      sandbox="allow-scripts allow-same-origin allow-forms"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-top-navigation-by-user-activation"
       @load="onIframeLoad"
     />
   </div>

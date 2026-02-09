@@ -66,7 +66,7 @@ Run `make help` for all targets. Common: `make build`, `make run`, `make dev`, `
 }
 ```
 
-**Categories** (order in sidebar): `Text`, `Encoding`, `Web`, `Hashing`, `Other`. Use `category` in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
+**Categories** (order in sidebar): `Text`, `Encoding`, `Cryptography`, `Web & APIs`, `CSS & Design`, `Units & Numbers`, `Time & Date`, `Reference`, `Other`. Use `category` or `categories` (array) in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
 
 **Tool rules:**
 
