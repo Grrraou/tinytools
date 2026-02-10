@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JSON Path &amp; XPath Tester</title>
+  <script src="/lib/jsonpath-plus.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body, input, textarea { -webkit-user-select: text; user-select: text; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 1rem; background: #f5f5f5; color: #1a1a1a; font-size: 0.95rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem 0; }
+    .tabs { display: flex; gap: 0; margin-bottom: 1rem; border-bottom: 1px solid #ccc; }
+    .tabs button { padding: 0.5rem 1rem; font: inherit; cursor: pointer; border: 1px solid #ccc; border-bottom: none; background: #e8e8e8; border-radius: 6px 6px 0 0; margin-bottom: -1px; }
+    .tabs button:hover { background: #ddd; }
+    .tabs button.active { background: #fff; font-weight: 600; border-bottom: 1px solid #fff; }
+    .panel { display: none; background: #fff; border: 1px solid #ccc; border-radius: 0 6px 6px 6px; padding: 1rem; }
+    .panel.active { display: block; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.9rem; }
+    .row { margin-bottom: 1rem; }
+    input[type="text"], textarea { width: 100%; font-family: ui-monospace, monospace; font-size: 0.9rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    input:focus, textarea:focus { outline: none; border-color: #1a73e8; }
+    textarea { min-height: 120px; resize: vertical; }
+    .expr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+    .expr-row input { flex: 1; min-width: 12rem; }
+    .expr-row button { padding: 0.45rem 0.9rem; font: inherit; cursor: pointer; border: 1px solid #1a73e8; border-radius: 4px; background: #1a73e8; color: #fff; }
+    .expr-row button:hover { background: #1557b0; }
+    .expr-row button.secondary { background: #f5f5f5; color: #1a1a1a; border-color: #ccc; }
+    .expr-row button.secondary:hover { background: #e8e8e8; }
+    .result-wrap { margin-top: 1rem; border: 1px solid #e0e0e0; border-radius: 6px; background: #fafafa; padding: 0.75rem; }
+    .result-count { font-size: 0.9rem; color: #555; margin-bottom: 0.5rem; }
+    .result-list { font-family: ui-monospace, monospace; font-size: 0.85rem; white-space: pre-wrap; word-break: break-word; max-height: 40vh; overflow: auto; }
+    .result-list .item { padding: 0.35rem 0; border-bottom: 1px solid #eee; }
+    .result-list .item:last-child { border-bottom: none; }
+    .error { color: #c00; font-size: 0.9rem; margin-top: 0.5rem; }
+    .samples { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
+    .samples button { padding: 0.35rem 0.6rem; font-size: 0.82rem; font: inherit; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+    .samples button:hover { background: #e8e8e8; }
+    .hint { font-size: 0.85rem; color: #555; margin-top: 0.25rem; }
+    .local-banner { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 1rem; font-size: 0.85rem; color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <h1>JSON Path &amp; XPath Tester</h1>
+  <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #555;">Test JSONPath on JSON and XPath on XML. Enter your data and expression — results update as you run. No data is sent to any server.</p>
+  <div class="local-banner" role="status">Runs in your browser. All parsing and evaluation is done locally.</div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" id="tabJsonPath" role="tab" aria-selected="true">JSON Path</button>
+    <button type="button" id="tabXPath" role="tab" aria-selected="false">XPath</button>
+  </div>
+
+  <div id="panelJsonPath" class="panel active" role="tabpanel">
+    <div class="row">
+      <label for="jsonInput">JSON</label>
+      <textarea id="jsonInput" placeholder='{"store":{"book":[{"title":"A","price":1},{"title":"B","price":2}]}}' spellcheck="false"></textarea>
+      <p class="hint">Sample:</p>
+      <div class="samples" id="jsonSamples">
+        <button type="button" data-sample="store">Store & books</button>
+        <button type="button" data-sample="api">API response</button>
+        <button type="button" data-sample="nested">Nested objects</button>
+      </div>
+    </div>
+    <div class="row">
+      <label for="jsonPathExpr">JSONPath expression</label>
+      <div class="expr-row">
+        <input type="text" id="jsonPathExpr" placeholder="e.g. $.store.book[*].title or $..price" spellcheck="false" aria-label="JSONPath expression" />
+        <button type="button" id="btnRunJsonPath">Run</button>
+        <button type="button" id="btnExamplesJson" class="secondary">Examples</button>
+      </div>
+      <p class="hint">$ = root, . or [] = child, .. = descendant, * = wildcard, [0] or [1:3] = index/slice, ?(@.price &lt; 10) = filter.</p>
+    </div>
+    <div id="jsonPathError" class="error" style="display: none;"></div>
+    <div id="jsonPathResult" class="result-wrap" style="display: none;">
+      <div class="result-count" id="jsonPathCount"></div>
+      <div class="result-list" id="jsonPathList"></div>
+    </div>
+  </div>
+
+  <div id="panelXPath" class="panel" role="tabpanel">
+    <div class="row">
+      <label for="xmlInput">XML</label>
+      <textarea id="xmlInput" placeholder='<catalog><book id="1"><title>A</title><price>10</price></book><book id="2"><title>B</title><price>20</price></book></catalog>' spellcheck="false"></textarea>
+      <p class="hint">Sample:</p>
+      <div class="samples" id="xmlSamples">
+        <button type="button" data-sample="catalog">Catalog</button>
+        <button type="button" data-sample="rss">RSS feed</button>
+        <button type="button" data-sample="config">Config</button>
+      </div>
+    </div>
+    <div class="row">
+      <label for="xpathExpr">XPath expression</label>
+      <div class="expr-row">
+        <input type="text" id="xpathExpr" placeholder="e.g. //book/title or //book[@id&gt;1]/price" spellcheck="false" aria-label="XPath expression" />
+        <button type="button" id="btnRunXPath">Run</button>
+        <button type="button" id="btnExamplesXPath" class="secondary">Examples</button>
+      </div>
+      <p class="hint">/ = root path, // = anywhere, @ = attribute, [] = predicate, text() = text node.</p>
+    </div>
+    <div id="xpathError" class="error" style="display: none;"></div>
+    <div id="xpathResult" class="result-wrap" style="display: none;">
+      <div class="result-count" id="xpathCount"></div>
+      <div class="result-list" id="xpathList"></div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  var JSON_SAMPLES = {
+    store: '{\n  "store": {\n    "book": [\n      { "category": "fiction", "title": "A", "price": 8.99 },\n      { "category": "fiction", "title": "B", "price": 12.99 },\n      { "category": "tech", "title": "C", "price": 24.99 }\n    ],\n    "location": "London"\n  }\n}',
+    api: '{\n  "data": [\n    { "id": 1, "name": "Alice", "active": true },\n    { "id": 2, "name": "Bob", "active": false }\n  ],\n  "total": 2\n}',
+    nested: '{\n  "a": { "b": { "c": [1, 2, 3] } },\n  "x": [ { "y": "one" }, { "y": "two" } ]\n}'
+  };
+  var JSONPATH_EXAMPLES = [
+    '$.store.book[*].title',
+    '$.store.book[*].price',
+    '$..price',
+    '$.store.book[?(@.price < 15)]',
+    '$.data[*].name',
+    '$..c',
+    '$.store.book[0]'
+  ];
+  var XML_SAMPLES = {
+    catalog: '<catalog>\n  <book id="1">\n    <title>XML Guide</title>\n    <price>25</price>\n    <author>Jane</author>\n  </book>\n  <book id="2">\n    <title>Web APIs</title>\n    <price>30</price>\n    <author>John</author>\n  </book>\n</catalog>',
+    rss: '<?xml version="1.0"?>\n<rss><channel>\n  <item><title>News 1</title><link>https://example.com/1</link></item>\n  <item><title>News 2</title><link>https://example.com/2</link></item>\n</channel></rss>',
+    config: '<config>\n  <database host="localhost" port="5432"/>\n  <features><feature name="auth"/><feature name="api"/></features>\n</config>'
+  };
+  var XPATH_EXAMPLES = [
+    '//book/title',
+    '//book[@id="2"]/price',
+    '//title/text()',
+    '//book[price>25]',
+    '//item/title',
+    '//@host',
+    '//feature/@name'
+  ];
+
+  var tabJsonPath = document.getElementById('tabJsonPath');
+  var tabXPath = document.getElementById('tabXPath');
+  var panelJsonPath = document.getElementById('panelJsonPath');
+  var panelXPath = document.getElementById('panelXPath');
+  var jsonInput = document.getElementById('jsonInput');
+  var jsonPathExpr = document.getElementById('jsonPathExpr');
+  var btnRunJsonPath = document.getElementById('btnRunJsonPath');
+  var jsonPathError = document.getElementById('jsonPathError');
+  var jsonPathResult = document.getElementById('jsonPathResult');
+  var jsonPathCount = document.getElementById('jsonPathCount');
+  var jsonPathList = document.getElementById('jsonPathList');
+  var xmlInput = document.getElementById('xmlInput');
+  var xpathExpr = document.getElementById('xpathExpr');
+  var btnRunXPath = document.getElementById('btnRunXPath');
+  var xpathError = document.getElementById('xpathError');
+  var xpathResult = document.getElementById('xpathResult');
+  var xpathCount = document.getElementById('xpathCount');
+  var xpathList = document.getElementById('xpathList');
+
+  function switchTab(toJsonPath) {
+    tabJsonPath.classList.toggle('active', toJsonPath);
+    tabJsonPath.setAttribute('aria-selected', toJsonPath ? 'true' : 'false');
+    tabXPath.classList.toggle('active', !toJsonPath);
+    tabXPath.setAttribute('aria-selected', !toJsonPath ? 'true' : 'false');
+    panelJsonPath.classList.toggle('active', toJsonPath);
+    panelXPath.classList.toggle('active', !toJsonPath);
+    updateUrl();
+  }
+
+  function updateUrl() {
+    var mode = panelJsonPath.classList.contains('active') ? 'jsonpath' : 'xpath';
+    var path = (mode === 'jsonpath' ? jsonPathExpr.value : xpathExpr.value).trim();
+    var params = new URLSearchParams(window.location.search);
+    params.set('mode', mode);
+    if (path) params.set('path', path);
+    else params.delete('path');
+    var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    if (newUrl !== window.location.pathname + window.location.search) {
+      try { window.history.replaceState(null, '', newUrl); } catch (e) {}
+    }
+  }
+
+  function readUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var mode = params.get('mode');
+    var path = params.get('path');
+    if (mode === 'xpath') {
+      switchTab(false);
+      if (path) xpathExpr.value = path;
+    } else {
+      switchTab(true);
+      if (path) jsonPathExpr.value = path;
+    }
+  }
+
+  function runJsonPath() {
+    jsonPathError.style.display = 'none';
+    jsonPathResult.style.display = 'none';
+    var raw = jsonInput.value.trim();
+    var expr = jsonPathExpr.value.trim();
+    if (!raw) { jsonPathError.textContent = 'Enter JSON first.'; jsonPathError.style.display = 'block'; return; }
+    if (!expr) { jsonPathError.textContent = 'Enter a JSONPath expression.'; jsonPathError.style.display = 'block'; return; }
+    var json;
+    try { json = JSON.parse(raw); } catch (e) { jsonPathError.textContent = 'Invalid JSON: ' + e.message; jsonPathError.style.display = 'block'; return; }
+    var JSONPathFn = (typeof JSONPath !== 'undefined' && JSONPath.JSONPath) ? JSONPath.JSONPath : (typeof JSONPath !== 'undefined' ? JSONPath : null);
+    if (!JSONPathFn || typeof JSONPathFn !== 'function') { jsonPathError.textContent = 'JSONPath library not loaded. Check /lib/jsonpath-plus.umd.min.js'; jsonPathError.style.display = 'block'; return; }
+    try {
+      var result = JSONPathFn({ path: expr, json: json, wrap: true });
+      if (!Array.isArray(result)) result = [result];
+      jsonPathCount.textContent = result.length + ' match(es)';
+      jsonPathList.innerHTML = result.map(function (v, i) {
+        var str = typeof v === 'object' && v !== null ? JSON.stringify(v, null, 2) : String(v);
+        return '<div class="item">[' + (i + 1) + '] ' + escapeHtml(str) + '</div>';
+      }).join('');
+      jsonPathResult.style.display = 'block';
+      updateUrl();
+    } catch (e) {
+      jsonPathError.textContent = e.message || 'JSONPath error';
+      jsonPathError.style.display = 'block';
+    }
+  }
+
+  function runXPath() {
+    xpathError.style.display = 'none';
+    xpathResult.style.display = 'none';
+    var raw = xmlInput.value.trim();
+    var expr = xpathExpr.value.trim();
+    if (!raw) { xpathError.textContent = 'Enter XML first.'; xpathError.style.display = 'block'; return; }
+    if (!expr) { xpathError.textContent = 'Enter an XPath expression.'; xpathError.style.display = 'block'; return; }
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(raw, 'text/xml');
+    var parseErr = doc.querySelector('parsererror');
+    if (parseErr) { xpathError.textContent = 'Invalid XML: ' + (parseErr.textContent || 'parse error').trim(); xpathError.style.display = 'block'; return; }
+    try {
+      var iterator = doc.evaluate(expr, doc, null, XPathResult.ANY_TYPE, null);
+      var nodes = [];
+      var node;
+      while ((node = iterator.iterateNext()) !== null) nodes.push(node);
+      xpathCount.textContent = nodes.length + ' match(es)';
+      xpathList.innerHTML = nodes.map(function (n, i) {
+        var text = n.nodeType === 2 ? '@' + n.nodeName + '="' + n.nodeValue + '"' : (n.nodeType === 3 ? 'text(): ' + n.nodeValue : n.nodeName + (n.textContent ? ': ' + n.textContent.trim().slice(0, 80) : ''));
+        return '<div class="item">[' + (i + 1) + '] ' + escapeHtml(text) + '</div>';
+      }).join('');
+      xpathResult.style.display = 'block';
+      updateUrl();
+    } catch (e) {
+      xpathError.textContent = e.message || 'XPath error';
+      xpathError.style.display = 'block';
+    }
+  }
+
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  tabJsonPath.addEventListener('click', function () { switchTab(true); });
+  tabXPath.addEventListener('click', function () { switchTab(false); });
+  btnRunJsonPath.addEventListener('click', runJsonPath);
+  btnRunXPath.addEventListener('click', runXPath);
+
+  document.getElementById('jsonSamples').addEventListener('click', function (e) {
+    var sample = e.target.getAttribute('data-sample');
+    if (sample && JSON_SAMPLES[sample]) jsonInput.value = JSON_SAMPLES[sample];
+  });
+  document.getElementById('xmlSamples').addEventListener('click', function (e) {
+    var sample = e.target.getAttribute('data-sample');
+    if (sample && XML_SAMPLES[sample]) xmlInput.value = XML_SAMPLES[sample];
+  });
+
+  document.getElementById('btnExamplesJson').addEventListener('click', function () {
+    var ex = JSONPATH_EXAMPLES[Math.floor(Math.random() * JSONPATH_EXAMPLES.length)];
+    jsonPathExpr.value = ex;
+  });
+  document.getElementById('btnExamplesXPath').addEventListener('click', function () {
+    var ex = XPATH_EXAMPLES[Math.floor(Math.random() * XPATH_EXAMPLES.length)];
+    xpathExpr.value = ex;
+  });
+
+  readUrl();
+})();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+{"name":"Hash encode / decode","description":"Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512), HMAC with key, and AES encrypt/decrypt. Use keys from the global key manager or enter your own. All in the browser.","category":"Cryptography","categories":["Cryptography","Encoding"],"keywords":["hash","md5","sha","hmac","aes","encrypt","decrypt","checksum","key"],"order":2,"icon":"🔐"}

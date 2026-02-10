@@ -1,132 +1,173 @@
 # TinyTools
 
-A **single-page collection of small, focused tools** — unit converters (temperature, distance, speed, angles, CSS), text and encoding (Base64, URL, case, regex), time and date, finance, reference (Unicode, ports, HTTP status codes), and more. One UI, no sign-up, no tracking. Add new tools by adding a folder under `tools/`; no app code changes required.
+A single-page collection of small, focused tools: converters, encoders, text utilities, time and date, finance, and reference. No sign-up, no tracking. Everything runs in your browser where possible.
 
-## Features
+**Try it online:** [tinytools.rootsolve.org](https://tinytools.rootsolve.org)
 
-- **URL paths** — Each tool has a direct URL: `/t/<slug>` (e.g. `/t/unicode-search`, `/t/time-converter`). Query parameters are passed into the tool iframe so you can link to results or filters (e.g. `/t/time-converter?ts=1707350400`). Shareable and indexable.
-- **Search & categories** — Find tools by name, description, or keywords; filter by category.
-- **Tool discovery** — Each tool is a folder with `index.html` and optional `meta.json`. Run `npm run generate-manifest` and it appears in the UI.
-- **Secure** — Tools run in sandboxed iframes; backend only serves static files and manifest; strict CSP and path validation.
-- **Backend optional** — You can serve the built frontend + tools as static files (no Node). Use the small Node server for dev or when you prefer one process.
+---
 
-## Quick start
+## Build
+
+From the project root:
 
 ```bash
-# From repo root
-npm run generate-manifest   # scan tools/ and build tools-manifest.json
-cd frontend && npm install && npm run dev
+npm run generate-manifest
+cd frontend && npm install && npm run build
+cd ../backend && npm install
+node server.js
 ```
 
-Then run the backend in another terminal so the app can load the manifest and tools:
+App runs at **http://localhost:3000**.
+
+**Static deploy (e.g. Apache):** After the steps above, serve the contents of `frontend/dist/` (it already contains the built app and a copy of `tools/`). No Node process needed.
+
+**Docker (Node):**
 
 ```bash
-cd backend && npm install && node server.js
+docker compose up -d --build
 ```
 
-Open **http://localhost:5173** (Vite proxies `/tools` and `/tools-manifest.json` to the backend).
-
-**Single-command production-style run:**
+**Docker (Apache):**
 
 ```bash
-npm run build    # generate manifest, build frontend, copy tools into dist
-cd backend && node server.js
+docker compose -f docker-compose.apache.yml up -d --build
 ```
 
-Then open **http://localhost:3000**.
+Use a `.env` file to set `PORT` and `CONTAINER_NAME` if other services use the default port.
 
-### Docker
+---
 
-**Port and container name** — On a server that already runs other Dockerized sites, set the host port and container name via a `.env` file so this app doesn’t clash:
+## Tools
 
-```bash
-cp env.example .env
-# Edit .env: e.g. PORT=3001 and CONTAINER_NAME=tinytools-app
-```
+Each tool has a direct URL under `/tools/<id>/`. Below: short description and example use for every tool.
 
-- **Make (Node image):** `make build` then `make dev` — app at `http://localhost:<PORT>` (default 3000).
-- **Make (Apache2 image):** `make build-apache` then `make dev-apache` — same port mapping; container listens on 80.
-- **Docker Compose:** `docker compose up -d --build` — reads `PORT` and `CONTAINER_NAME` from `.env`.
-- **Apache via Compose:** `docker compose -f docker-compose.apache.yml up -d --build`.
+### Text
 
-Stop/remove: `make down` (or `docker compose down`).
+- **Common regex** — Reference of common regex patterns (email, URL, date, phone, hashtag, etc.). Search and open any pattern in Regex Tester with valid/invalid sample lines.  
+  *Use case: Find a ready-made pattern for emails or URLs and open it in the tester with sample data.*
 
-### Makefile
+- **Extract from text** — Extract emails, phones, URLs, dates or custom regex from text. One button per type; handles many formats.  
+  *Use case: Paste a long log or document and pull out all email addresses or links in one click.*
 
-Common: `make build`, `make dev`, `make down`, `make build-apache`, `make dev-apache`, `make generate-manifest`, `make delete`.
+- **Regex Builder** — Paste a substring and get a best-effort regex that matches it. Character classes, grouped repeats, escaped specials. Browser-only.  
+  *Use case: You have a sample like "user_123" and want a pattern that matches similar strings.*
 
-## Renaming the repository
+- **Unicode Search** — Search Unicode characters by name or code point.  
+  *Use case: Find the character for "right arrow" or look up U+20AC (€).*
 
-If the repo is currently named something else (e.g. `helpers`) and you want to rename it to **TinyTools** (or `tinytools` / `tiny-tools`):
+- **Word heat map** — Build a visual heat map or tag cloud from text. Words sized and colored by frequency.  
+  *Use case: See which terms appear most in an article or paste.*
 
-1. **On GitHub:** Repository → **Settings** → **General** → **Repository name** → change to `tinytools` (or your choice) → **Rename**.
-2. **On GitLab:** Project → **Settings** → **General** → **Project name** and **Project URL** (path) → save.
-3. **Update your local clone:**
-   ```bash
-   git remote set-url origin https://github.com/YOUR_USER/tinytools.git
-   # or the new URL from your host
-   ```
-   If you prefer a fresh clone:
-   ```bash
-   git clone https://github.com/YOUR_USER/tinytools.git
-   cd tinytools
-   ```
-4. The app name (TinyTools), package names (`tinytools`, `tinytools-frontend`, `tinytools-backend`), and Docker default container name (`tinytools-app`) are already set in this project. The **folder name** on disk can stay as-is (e.g. `helpers`); only the remote URL and optional clone path change when you rename the repo.
+- **Case converter** — Convert between camelCase, snake_case, kebab-case, PascalCase, UPPER_SNAKE, Title Case, and more.  
+  *Use case: Turn API response keys from snake_case to camelCase for your frontend.*
 
-## Adding a new tool
+- **JSON Path & XPath Tester** — Test JSONPath on JSON and XPath on XML. Enter data and expression; see matches instantly. Sample data and examples included.  
+  *Use case: Debug a JSONPath like `$.items[*].id` on real API JSON, or try XPath on an XML config.*
 
-1. Create a folder under `tools/` with a **slug** name (lowercase, numbers, hyphens only), e.g. `tools/my-tool/`.
-2. Add `index.html` (and optionally `meta.json`).
-3. Run `npm run generate-manifest` from the repo root.
+- **Regex Tester** — Test regex patterns live: pattern, flags, test string. See highlights, match count, capture groups, validation errors. Explanation and regex syntax docs.  
+  *Use case: Write and debug a regex before putting it in code; check capture groups.*
 
-**Example `tools/url-encode/meta.json`:**
+- **Diff checker** — Text A vs Text B: visual diff to quickly find differences between two texts.  
+  *Use case: Compare two configs or log outputs to see what changed.*
 
-```json
-{
-  "name": "URL Encode / Decode",
-  "description": "Encode or decode URL components",
-  "category": "Web & APIs",
-  "keywords": ["url", "encode", "percent"],
-  "order": 2
-}
-```
+- **Sort list** — Paste a list, choose separator (comma, semicolon, newline, etc.) and trim. Sort ASC/DESC, find missing numbers, remove duplicates, reverse, shuffle, change separator.  
+  *Use case: Sort a comma-separated list of IDs, or find gaps in a sequence.*
 
-**Categories** (order in sidebar): `Text`, `Encoding`, `Cryptography`, `Web & APIs`, `CSS & Design`, `Units & Numbers`, `Finance`, `Time & Date`, `Reference`, `External`, `Other`. Use `category` or `categories` (array) in `meta.json`; unknown categories go under "Other". Use `order` for ordering inside a category.
+### Encoding
 
-**Tool rules:**
+- **Base converter** — Convert numbers between binary, decimal, hex, octal and any custom base (2–36).  
+  *Use case: Convert a hex color to decimal, or debug bit flags in binary.*
 
-- One main file: `index.html`. No path traversal; backend only serves `index.html` under each tool slug.
-- Tools run in an iframe with `sandbox="allow-scripts allow-same-origin"`. Prefer client-side logic so you don’t need the backend.
-- Keep tools self-contained (inline or same-origin scripts only) so they work with the default CSP.
-- **URL parameters (norm for all tools):** (1) **Read on load** — Use `URLSearchParams(window.location.search)` to restore state (filters, input, mode) so direct links work. (2) **Sync URL on change** — When the user changes state, tell the shell to update the address bar so the link stays shareable: `if (window.parent !== window) window.parent.postMessage({ type: 'helpers-set-query', query: { param: value, ... } }, location.origin);` The shell will not reload the iframe. Param names are tool-specific; keep them short and document below.
+- **Base64 Encode / Decode** — Encode or decode text and files to/from Base64.  
+  *Use case: Encode a small file for embedding, or decode a Base64 token.*
 
-**URL params by tool:**
+- **HTML Encode / Decode** — Encode or decode HTML entities.  
+  *Use case: Escape `<` and `>` for safe display in HTML, or decode `&amp;` back to `&`.*
 
-| Tool | Params | Description |
-|------|--------|--------------|
-| unicode-search | `q`, `cat` | Search text; category name (e.g. `Arrows` or empty for All). |
-| base64 | `t`, `m` | Input text (`t`); mode `encode` or `decode`. |
-| html-encode-decode | `t`, `m` | Input text; mode `encode` or `decode`. |
-| time-converter | `ts`, `tz` | Timestamp or date string; timezone filter substring. |
+- **URL Encode / Decode** — Percent-encode for URLs (query or path) or decode percent-encoded text.  
+  *Use case: Encode a query value for a link, or decode a received query string.*
 
-## Project layout
+### Cryptography
 
-```
-<repo root>/
-  frontend/          # Vue 3 + Vite app (shell: search, categories, iframe)
-  backend/           # Minimal Express server (static + /tools + manifest)
-  tools/             # One folder per tool (index.html + optional meta.json)
-  scripts/
-    generate-manifest.js    # Scans tools/ → tools-manifest.json
-    copy-tools-to-dist.js   # Copies tools + manifest into frontend/dist for static deploy
-```
+- **Text data masking** — Mask emails, phones, URLs in text (e.g. j***@gmail.com). Reversible masking with a secret key. Runs locally; safe for sharing with AI or support.  
+  *Use case: Redact PII in a log before sending it to a colleague or pasting into a chatbot.*
 
-## Static-only deployment
+- **Hash encode / decode** — Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512), HMAC with key, and AES encrypt/decrypt. Use keys from the global key manager or enter your own. All in the browser.  
+  *Use case: Generate a SHA-256 checksum of a string, or verify an HMAC signature.*
 
-After `npm run build`, `frontend/dist/` contains the app, `tools-manifest.json`, and `tools/**`. Serve `frontend/dist` with any static host (e.g. nginx, Apache, Vercel, Netlify). No Node backend required. For Apache in Docker with a configurable port, use `Dockerfile.apache` and set `PORT` in `.env`.
+### Web & APIs
 
-## Security
+- **JSON formatter** — Format or minify JSON with indent. Search and navigate inside the formatted output.  
+  *Use case: Pretty-print an API response to read it, or minify before sending.*
 
-- **Backend:** Serves only pre-generated manifest and files under `tools/<slug>/index.html`. Slug validated with `[a-z0-9-]+`; path traversal rejected.
-- **Frontend:** CSP set on all responses (script/style limited; no `eval`); tools run in iframes with sandbox.
-- **No user input** is executed server-side; no dynamic require/import of user-controlled paths.
+- **JSON / XML / Array converter** — Convert between JSON, XML, PHP array, JavaScript, Python dict, YAML, .env, URL params and other formats. Accepts JSON formatter output via "Send to converter".  
+  *Use case: Turn a PHP config array into JSON, or export API JSON as XML.*
+
+- **HTTP status codes** — List and search all HTTP return codes with an explanation for each.  
+  *Use case: Look up what 429 or 503 means and when to use it.*
+
+- **Port number lookup** — Look up port numbers: e.g. 443 → HTTPS, with description and common usage.  
+  *Use case: Check which service usually runs on port 5432 or 27017.*
+
+### CSS & Design
+
+- **Color converter** — Convert between Hex, RGB, HSL, HSV/HSB, CMYK, and CSS named colors. Color picker and auto-detect from text. Optional alpha.  
+  *Use case: Get the HSL equivalent of a hex color for CSS, or pick a color and copy in several formats.*
+
+- **CSS units converter** — Convert between px, rem, em, %, vw, vh, pt and more. Set base font-size and viewport. Live text preview.  
+  *Use case: Convert a design’s 16px to rem with a 16px root, or see how 2rem looks.*
+
+### Units & Numbers
+
+- **Byte converter** — Convert between bytes, KB, MB, GB, KiB, MiB, bits, octets. Explanations for decimal vs binary (MB vs MiB).  
+  *Use case: Convert 1 GiB to MB, or understand the difference between MB and MiB.*
+
+- **Distance converter** — Convert between metric, imperial and astronomical distances (mm, km, miles, light-years, parsecs, etc.) with explanations.  
+  *Use case: Convert miles to km for a trip, or 1 AU to km.*
+
+- **Temperature converter** — Convert between Celsius, Fahrenheit, Kelvin and Rankine. Explanations for each scale.  
+  *Use case: Convert 98.6°F to Celsius, or 0°C to Kelvin.*
+
+- **Angle converter** — Convert between degrees, radians, gradians, arc minutes, arc seconds and turns. Visual representation of the angle.  
+  *Use case: Convert 90° to radians for math or CSS, or see the angle on a circle.*
+
+- **Speed converter** — Convert between m/s, km/h, mph, knots, ft/s, Mach and more (metric, imperial, nautical). Explanations included.  
+  *Use case: Convert 60 mph to m/s, or wind speed from knots to km/h.*
+
+- **Percentage calculator** — x% of y, what percent x is of y, percentage increase/decrease, difference, reverse. Examples per card.  
+  *Use case: "What is 20% of 80?" or "80 is what percent of 200?"*
+
+- **Average / median / mode calculator** — Compute mean, median, and mode from a list of numbers. Paste comma- or newline-separated values; see count, sum, min, max.  
+  *Use case: Get the average of a list of grades, or the median of response times.*
+
+### Finance
+
+- **Finance calculator** — Inflation impact, compound & simple interest, loan payment, Rule of 72, future/present value, and more. Browser-only.  
+  *Use case: See how much today’s 1000€ is worth after 5 years at 2% inflation, or compute monthly loan payment.*
+
+### Time & Date
+
+- **Time converter** — Convert timestamps (Unix, ISO) and view the same moment in any time zone. Date picker and URL params.  
+  *Use case: Convert 1707350400 to a readable date, or see "now" in Tokyo.*
+
+- **Cron parser** — Input a cron expression; see next 5 run times in local time. Common cron presets and URL param for expression.  
+  *Use case: Check when "0 9 * * 1-5" actually runs next.*
+
+- **Date comparator** — Compare two dates with date pickers. See difference in days, weeks, months, years. URL params for sharing.  
+  *Use case: How many days between two deadlines, or between today and a release date.*
+
+- **Countdown** — Time until a date: countdown in seconds, minutes, hours, days, weeks. Updates in real time.  
+  *Use case: "How long until New Year?" or until a project deadline.*
+
+### Reference
+
+- **Keyboard shortcuts** — OS keyboard shortcuts for Windows, Mac, and Linux with search.  
+  *Use case: Look up "copy" or "switch window" shortcut on another OS.*
+
+- **Shell one-liner** — Build shell one-liners for common commands: CMD, PowerShell, Bash, Mac. Variables and flags per command; descriptions and search.  
+  *Use case: Get the exact curl or ssh command with your host and key path filled in.*
+
+### External
+
+- **Chaos proxy (Latency Poison)** — Proxy that injects configurable latency (and optional failures) into HTTP traffic to test how your app behaves under delay or chaos. By RootSolve; link opens the external site and docs.  
+  *Use case: Point your app at the proxy and add delay to simulate slow networks or test timeouts.*

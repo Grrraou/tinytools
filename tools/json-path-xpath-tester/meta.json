@@ -1,0 +1,9 @@
+{
+  "name": "JSON Path & XPath Tester",
+  "description": "Test JSONPath on JSON and XPath on XML. Enter data and expression, see matches instantly. Sample data and examples included.",
+  "category": "Text",
+  "categories": ["Text", "Web & APIs", "Reference"],
+  "keywords": ["jsonpath", "xpath", "json", "xml", "query", "selector", "tester"],
+  "order": 2,
+  "icon": "🔍"
+}

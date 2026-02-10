@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-09T23:15:22.751Z",
+  "generatedAt": "2026-02-10T18:11:34.414Z",
   "categories": [
     "Text",
     "Encoding",
@@ -138,6 +138,29 @@
       ],
       "order": 2,
       "icon": "🔀"
+    },
+    {
+      "id": "json-path-xpath-tester",
+      "path": "tools/json-path-xpath-tester/",
+      "name": "JSON Path & XPath Tester",
+      "category": "Text",
+      "categories": [
+        "Text",
+        "Web & APIs",
+        "Reference"
+      ],
+      "description": "Test JSONPath on JSON and XPath on XML. Enter data and expression, see matches instantly. Sample data and examples included.",
+      "keywords": [
+        "jsonpath",
+        "xpath",
+        "json",
+        "xml",
+        "query",
+        "selector",
+        "tester"
+      ],
+      "order": 2,
+      "icon": "🔍"
     },
     {
       "id": "regex-tester",
@@ -304,6 +327,30 @@
       ],
       "order": 1,
       "icon": "🎭"
+    },
+    {
+      "id": "hash-encode-decode",
+      "path": "tools/hash-encode-decode/",
+      "name": "Hash encode / decode",
+      "category": "Cryptography",
+      "categories": [
+        "Cryptography",
+        "Encoding"
+      ],
+      "description": "Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512), HMAC with key, and AES encrypt/decrypt. Use keys from the global key manager or enter your own. All in the browser.",
+      "keywords": [
+        "hash",
+        "md5",
+        "sha",
+        "hmac",
+        "aes",
+        "encrypt",
+        "decrypt",
+        "checksum",
+        "key"
+      ],
+      "order": 2,
+      "icon": "🔐"
     },
     {
       "id": "json-formatter",
@@ -745,20 +792,21 @@
     {
       "id": "latency-poison",
       "path": "tools/latency-poison/",
-      "name": "Latency Poison",
+      "name": "Chaos proxy",
       "category": "External",
       "categories": [
         "External"
       ],
-      "description": "Learn about the Latency Poison concept from RootSolve — external resource with a direct link to the site.",
+      "description": "Proxy that injects configurable latency (and optional failures) into HTTP traffic so you can test how your app behaves under delay or chaos. By RootSolve; open the site to run it and read the docs.",
       "keywords": [
         "latency",
         "poison",
+        "chaos",
+        "proxy",
         "rootsolve",
-        "external",
-        "link",
-        "performance",
-        "network"
+        "testing",
+        "network",
+        "delay"
       ],
       "order": 1,
       "icon": "🔗"

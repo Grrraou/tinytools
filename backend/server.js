@@ -25,7 +25,7 @@ function setSecurityHeaders(res) {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self'; img-src 'self' data:; connect-src 'self'"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self'; img-src 'self' data:; connect-src 'self'"
   );
 }
 
@@ -63,6 +63,10 @@ app.get('/tools/:slug', (req, res) => {
   if (!SLUG_REGEX.test(req.params.slug)) return res.status(400).send('Invalid tool id');
   res.redirect(302, `/tools/${req.params.slug}/`);
 });
+
+// Shared libs (e.g. hash-wasm) — served from frontend/public/lib for dev and as copy in dist after build
+const LIB_DIR = path.join(ROOT, 'frontend', 'public', 'lib');
+app.use('/lib', express.static(LIB_DIR));
 
 // Frontend: prefer built dist
 app.use(express.static(DIST_DIR, { index: 'index.html' }));
